@@ -1,0 +1,71 @@
+{
+  "": {
+    "swift-dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/master.swiftdeps"
+  },
+  "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/AppState.swift": {
+    "dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/AppState.d",
+    "object": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/AppState.swift.o",
+    "swiftmodule": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/AppState~partial.swiftmodule",
+    "swift-dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/AppState.swiftdeps"
+  },
+  "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/Draft.swift": {
+    "dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/Draft.d",
+    "object": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/Draft.swift.o",
+    "swiftmodule": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/Draft~partial.swiftmodule",
+    "swift-dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/Draft.swiftdeps"
+  },
+  "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/DraftItemView.swift": {
+    "dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/DraftItemView.d",
+    "object": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/DraftItemView.swift.o",
+    "swiftmodule": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/DraftItemView~partial.swiftmodule",
+    "swift-dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/DraftItemView.swiftdeps"
+  },
+  "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/Editor/AssetPreviewView.swift": {
+    "dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/AssetPreviewView.d",
+    "object": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/AssetPreviewView.swift.o",
+    "swiftmodule": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/AssetPreviewView~partial.swiftmodule",
+    "swift-dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/AssetPreviewView.swiftdeps"
+  },
+  "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/Editor/CanvasView.swift": {
+    "dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/CanvasView.d",
+    "object": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/CanvasView.swift.o",
+    "swiftmodule": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/CanvasView~partial.swiftmodule",
+    "swift-dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/CanvasView.swiftdeps"
+  },
+  "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/Editor/EditorView.swift": {
+    "dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/EditorView.d",
+    "object": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/EditorView.swift.o",
+    "swiftmodule": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/EditorView~partial.swiftmodule",
+    "swift-dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/EditorView.swiftdeps"
+  },
+  "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/Editor/InspectorView.swift": {
+    "dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/InspectorView.d",
+    "object": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/InspectorView.swift.o",
+    "swiftmodule": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/InspectorView~partial.swiftmodule",
+    "swift-dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/InspectorView.swiftdeps"
+  },
+  "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/Editor/MediaListView.swift": {
+    "dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/MediaListView.d",
+    "object": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/MediaListView.swift.o",
+    "swiftmodule": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/MediaListView~partial.swiftmodule",
+    "swift-dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/MediaListView.swiftdeps"
+  },
+  "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/Editor/TrimmingView.swift": {
+    "dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/TrimmingView.d",
+    "object": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/TrimmingView.swift.o",
+    "swiftmodule": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/TrimmingView~partial.swiftmodule",
+    "swift-dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/TrimmingView.swiftdeps"
+  },
+  "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/MultiGridVideoEditorApp.swift": {
+    "dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/MultiGridVideoEditorApp.d",
+    "object": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/MultiGridVideoEditorApp.swift.o",
+    "swiftmodule": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/MultiGridVideoEditorApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/MultiGridVideoEditorApp.swiftdeps"
+  },
+  "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/WelcomeView.swift": {
+    "dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/WelcomeView.d",
+    "object": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/WelcomeView.swift.o",
+    "swiftmodule": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/WelcomeView~partial.swiftmodule",
+    "swift-dependencies": "/Users/cypher/workspace/PycharmProjects/Multi Grid Video Editor/MultiGridVideoEditor/.build/x86_64-apple-macosx/debug/MultiGridVideoEditor.build/WelcomeView.swiftdeps"
+  }
+}

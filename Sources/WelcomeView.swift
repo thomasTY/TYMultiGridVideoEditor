@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct WelcomeView: View {
+    @ObservedObject private var appState = AppState.shared
+    
     @State private var drafts: [Draft] = [
         Draft(title: "6月10日"),
         Draft(title: "6月9日(1)"),
@@ -11,7 +13,10 @@ struct WelcomeView: View {
     var body: some View {
         VStack(spacing: 0) {
             // "开始创作" button
-            Button(action: { print("开始创作") }) {
+            Button(action: {
+                print("[Log] '开始创作' button clicked.")
+                appState.isEditing = true
+            }) {
                 Text("开始创作")
                     .font(.title)
                     .fontWeight(.bold)
@@ -47,7 +52,10 @@ struct WelcomeView: View {
             ScrollView {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 220))], spacing: 25) {
                     ForEach(drafts) { draft in
-                        Button(action: { print("打开草稿: \(draft.title)") }) {
+                        Button(action: {
+                            print("[Log] Draft '\(draft.title)' clicked.")
+                            appState.isEditing = true
+                        }) {
                             DraftItemView(draft: draft)
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -56,6 +64,9 @@ struct WelcomeView: View {
                 .padding(.horizontal, 16)
             }
             .padding(.bottom, 25)
+        }
+        .onAppear {
+            print("[Log] WelcomeView appeared.")
         }
     }
 } 

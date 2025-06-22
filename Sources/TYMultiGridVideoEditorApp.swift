@@ -3,12 +3,19 @@ import SwiftUI
 @main
 struct TYMultiGridVideoEditorApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @ObservedObject private var appState = AppState.shared
 
     var body: some Scene {
         WindowGroup {
-            WelcomeView()
-                .frame(minWidth: 800, minHeight: 600)
-                .background(Color(NSColor.windowBackgroundColor).ignoresSafeArea())
+            Group {
+                if appState.isEditing {
+                    EditorView()
+                } else {
+                    WelcomeView()
+                }
+            }
+            .frame(minWidth: 1200, minHeight: 800)
+            .background(Color(NSColor.windowBackgroundColor).ignoresSafeArea())
         }
         .windowStyle(HiddenTitleBarWindowStyle())
     }

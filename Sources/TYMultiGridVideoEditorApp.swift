@@ -15,7 +15,7 @@ struct TYMultiGridVideoEditorApp: App {
                 }
             }
             .frame(minWidth: 1200, minHeight: 800)
-            .background(Color(NSColor.windowBackgroundColor).ignoresSafeArea())
+            .background(Theme.primaryBackgroundColor.ignoresSafeArea())
         }
         .windowStyle(HiddenTitleBarWindowStyle())
     }

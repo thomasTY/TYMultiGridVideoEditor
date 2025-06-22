@@ -30,6 +30,7 @@ struct MediaItemView: View {
             // Title
             Text(asset.title)
                 .font(.caption)
+                .foregroundColor(Theme.secondaryTextColor)
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .frame(maxWidth: .infinity, alignment: .leading)

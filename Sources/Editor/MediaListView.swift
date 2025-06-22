@@ -11,16 +11,18 @@ struct MediaListView: View {
                 Text("素材 (\(mediaAssets.count))")
                     .font(.headline)
                     .fontWeight(.medium)
+                    .foregroundColor(Theme.primaryTextColor)
                 Spacer()
                 Button(action: { print("Import button clicked") }) {
                     Label("导入", systemImage: "plus")
+                        .foregroundColor(Theme.secondaryTextColor)
                 }
                 .buttonStyle(.plain)
             }
             .padding(12)
-            .background(Color(NSColor.windowBackgroundColor))
+            .background(Theme.secondaryBackgroundColor)
             
-            Divider()
+            Divider().opacity(0.5)
 
             // Grid of media assets
             ScrollView {
@@ -28,7 +30,7 @@ struct MediaListView: View {
                     ForEach(mediaAssets) { asset in
                         MediaItemView(asset: asset)
                             .padding(3)
-                            .background(selectedAssetIDs.contains(asset.id) ? Color.accentColor : Color.clear)
+                            .background(selectedAssetIDs.contains(asset.id) ? Theme.accentColor : Color.clear)
                             .cornerRadius(8)
                             .onTapGesture {
                                 // Toggle selection
@@ -43,7 +45,7 @@ struct MediaListView: View {
                 .padding(12)
             }
         }
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(Theme.secondaryBackgroundColor)
         .cornerRadius(12)
         .clipped()
     }

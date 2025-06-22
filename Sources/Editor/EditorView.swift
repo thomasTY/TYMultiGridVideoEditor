@@ -34,7 +34,7 @@ struct EditorView: View {
             }
             .padding(hSpacing)
         }
-        .background(Color(NSColor.underPageBackgroundColor).edgesIgnoringSafeArea(.all))
+        .background(Theme.primaryBackgroundColor.ignoresSafeArea())
         .onAppear {
             print("[Log] EditorView appeared.")
         }

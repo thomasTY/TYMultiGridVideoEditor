@@ -22,7 +22,7 @@ struct WelcomeView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity, minHeight: 88)
-                    .background(LinearGradient(colors: [.blue.opacity(0.9), .purple.opacity(0.9)], startPoint: .leading, endPoint: .trailing))
+                    .background(Theme.creationGradient)
                     .cornerRadius(10)
             }
             .buttonStyle(PlainButtonStyle())
@@ -33,9 +33,9 @@ struct WelcomeView: View {
             Button(action: { print("导入草稿") }) {
                 Text("导入草稿")
                     .fontWeight(.medium)
+                    .foregroundColor(.white.opacity(0.85))
                     .frame(maxWidth: .infinity, minHeight: 50)
-                    .background(Color(NSColor.controlBackgroundColor))
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.3), lineWidth: 1))
+                    .background(Theme.secondaryBackgroundColor)
                     .cornerRadius(10)
             }
             .buttonStyle(PlainButtonStyle())
@@ -45,6 +45,7 @@ struct WelcomeView: View {
             Text("历史草稿")
                 .font(.title2)
                 .fontWeight(.bold)
+                .foregroundColor(Theme.primaryTextColor)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 30)

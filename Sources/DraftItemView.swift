@@ -13,12 +13,15 @@ struct DraftItemView: View {
 
             Text(draft.title)
                 .font(.headline)
+                .foregroundColor(Theme.primaryTextColor)
                 .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(10)
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(Theme.secondaryBackgroundColor)
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 1)
+        .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
         .contextMenu {
             Button("重命名", systemImage: "pencil") { print("Rename \(draft.title)") }
             Button("创建副本", systemImage: "plus.square.on.square") { print("Copy \(draft.title)") }

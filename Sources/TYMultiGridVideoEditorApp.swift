@@ -2,6 +2,8 @@ import SwiftUI
 
 @main
 struct TYMultiGridVideoEditorApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     var body: some Scene {
         WindowGroup {
             WelcomeView()

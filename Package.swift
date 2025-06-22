@@ -2,20 +2,20 @@
 import PackageDescription
 
 let package = Package(
-    name: "MultiGridVideoEditor",
+    name: "TYMultiGridVideoEditor",
     platforms: [
         .macOS(.v12) // Specify macOS 12.0 or newer
     ],
     products: [
         .executable(
-            name: "MultiGridVideoEditor",
-            targets: ["MultiGridVideoEditor"]
+            name: "TYMultiGridVideoEditor",
+            targets: ["TYMultiGridVideoEditor"]
         )
     ],
     dependencies: [],
     targets: [
         .executableTarget(
-            name: "MultiGridVideoEditor",
+            name: "TYMultiGridVideoEditor",
             path: "." // All source files are in the root directory
         )
     ]

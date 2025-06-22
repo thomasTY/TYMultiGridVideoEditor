@@ -12,10 +12,6 @@ struct PlaceholderView: View {
     }
 }
 
-struct MediaListView: View {
-    var body: some View { PlaceholderView(title: "素材列表区", color: .init(nsColor: .controlBackgroundColor)) }
-}
-
 struct CanvasView: View {
     var body: some View { PlaceholderView(title: "画布区", color: .init(nsColor: .darkGray)) }
 }

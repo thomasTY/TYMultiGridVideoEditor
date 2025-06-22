@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "TYMultiGridVideoEditor",
     platforms: [
-        .macOS(.v12) // Specify macOS 12.0 or newer
+        .macOS(.v12)
     ],
     products: [
         .executable(
@@ -16,7 +16,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "TYMultiGridVideoEditor",
-            path: "." // All source files are in the root directory
+            path: "Sources"
         )
     ]
 ) 

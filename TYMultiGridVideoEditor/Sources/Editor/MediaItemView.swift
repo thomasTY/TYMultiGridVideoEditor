@@ -73,8 +73,17 @@ struct MediaItemView: View {
     var onRename: (() -> Void)? = nil
     var onDuplicate: (() -> Void)? = nil
     var onReplace: (() -> Void)? = nil
+    var onAddToCanvas: (() -> Void)? = nil
     
     @State private var isHovering = false
+
+    // 工具函数：将秒数格式化为 mm:ss
+    private func formatDuration(_ duration: Double) -> String {
+        let totalSeconds = Int(duration)
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
 
     // 主要内容视图（缩略图），用于正常显示
     private var thumbnailContent: some View {
@@ -121,7 +130,7 @@ struct MediaItemView: View {
                     Spacer()
                     HStack {
                         if asset.type == .video, let duration = asset.duration {
-                            Text(String(format: "%.1fs", duration))
+                            Text(formatDuration(duration))
                                 .font(.caption2)
                                 .fontWeight(.medium)
                                 .padding(.horizontal, 4)
@@ -136,7 +145,7 @@ struct MediaItemView: View {
                 }
                 if isHovering {
                     // "Add to canvas" button on bottom right
-                    Button(action: { print("Add \(asset.title) to canvas") }) {
+                    Button(action: { onAddToCanvas?() }) {
                         Image(systemName: "plus.circle.fill")
                             .font(.title3)
                             .symbolRenderingMode(.palette)

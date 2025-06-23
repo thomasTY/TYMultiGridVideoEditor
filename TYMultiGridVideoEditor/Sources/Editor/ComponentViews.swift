@@ -23,25 +23,16 @@ struct CanvasView: View {
     @State private var currentTime: Double = 0
     @State private var duration: Double = 5 // 默认5s，后续根据所有素材最大时长动态调整
     @State private var timer: Timer? = nil
-    // 2.1.8参数
-    let defaultRows: Int = 5
-    let defaultCols: Int = 3
-    let cellAspect: CGFloat = 1.0 // 1:1
-    let cellSpacing: CGFloat = 0  // 无间距
-    let canvasPadding: CGFloat = 0 // 无内边距
     // 选中单元格
     @State private var selectedCell: Int? = nil
-    // 画布宽高比
-    @State private var canvasAspectRatio: CGFloat = 9.0/16.0
-    @State private var showAspectMenu: Bool = false
-    let aspectOptions: [(String, CGFloat)] = [
-        ("9:16", 9.0/16.0),
-        ("16:9", 16.0/9.0),
-        ("1:1", 1.0),
-        ("4:3", 4.0/3.0),
-        ("3:4", 3.0/4.0),
-        ("2:1", 2.0/1.0)
-    ]
+    // 参数Binding
+    @Binding var rowCount: Int
+    @Binding var colCount: Int
+    @Binding var cellAspect: CGFloat
+    @Binding var rowSpacing: CGFloat
+    @Binding var colSpacing: CGFloat
+    @Binding var canvasAspectRatio: CGFloat
+    let canvasPadding: CGFloat
 
     var body: some View {
         ZStack {
@@ -62,69 +53,19 @@ struct CanvasView: View {
                 .background(Theme.headerBackgroundColor)
                 // 分割线
                 Divider().opacity(0.7)
-                // 工具栏
-                HStack {
-                    Text("画布宽高比：")
-                        .font(.subheadline)
-                        .foregroundColor(.white)
-                    Button(action: { showAspectMenu.toggle() }) {
-                        HStack(spacing: 4) {
-                            Text(aspectOptions.first(where: { $0.1 == canvasAspectRatio })?.0 ?? "自定义")
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                            Image(systemName: "chevron.down")
-                                .font(.caption)
-                                .foregroundColor(.white)
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(Color.black.opacity(0.5))
-                        .cornerRadius(6)
-                    }
-                    .buttonStyle(.plain)
-                    .popover(isPresented: $showAspectMenu, arrowEdge: .bottom) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            ForEach(aspectOptions, id: \.0) { opt in
-                                Button(action: {
-                                    canvasAspectRatio = opt.1
-                                    showAspectMenu = false
-                                }) {
-                                    HStack {
-                                        Text(opt.0)
-                                            .fontWeight(canvasAspectRatio == opt.1 ? .bold : .regular)
-                                            .foregroundColor(canvasAspectRatio == opt.1 ? Theme.accentColor : .primary)
-                                        Spacer()
-                                        if canvasAspectRatio == opt.1 {
-                                            Image(systemName: "checkmark")
-                                                .foregroundColor(Theme.accentColor)
-                                        }
-                                    }
-                                    .padding(.vertical, 6)
-                                    .padding(.horizontal, 12)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                        .frame(width: 120)
-                        .background(Color(NSColor.windowBackgroundColor))
-                    }
-                    Spacer()
-                }
-                .frame(height: 40)
-                .background(Color.black.opacity(0.7))
                 // 画布宫格区
                 GeometryReader { geo in
-                    let rows = defaultRows
-                    let cols = defaultCols
+                    let rows = rowCount
+                    let cols = colCount
                     let W = geo.size.width - 2 * canvasPadding
                     let H = geo.size.height - 60 - 2 * canvasPadding // 60为控制条预留高度
-                    let cellH = H / CGFloat(rows)
+                    let cellH = (H - CGFloat(rows-1)*rowSpacing) / CGFloat(rows)
                     let cellW = cellH * cellAspect
                     let totalCellW = CGFloat(cols) * cellW
-                    let colSpacing: CGFloat = cols > 1 ? max((W - totalCellW) / CGFloat(cols - 1), 0) : 0
-                    VStack(spacing: 0) {
+                    let actualColSpacing: CGFloat = cols > 1 ? max((W - totalCellW) / CGFloat(cols - 1), colSpacing) : 0
+                    VStack(spacing: rowSpacing) {
                         ForEach(0..<rows, id: \.self) { row in
-                            HStack(spacing: colSpacing) {
+                            HStack(spacing: actualColSpacing) {
                                 ForEach(0..<cols, id: \.self) { col in
                                     let idx = row * cols + col
                                     let isSelected = selectedCell == idx
@@ -476,4 +417,189 @@ struct GlobalSyncVideoPlayer: NSViewRepresentable {
 
 extension Notification.Name {
     static let canvasGlobalSync = Notification.Name("canvasGlobalSync")
+}
+
+// 工具栏竖向布局，所有参数通过Binding传入
+struct CanvasToolBarView: View {
+    @Binding var rowCount: Int
+    @Binding var colCount: Int
+    @Binding var cellAspect: CGFloat
+    @Binding var rowSpacing: CGFloat
+    @Binding var colSpacing: CGFloat
+    @Binding var canvasAspectRatio: CGFloat
+    @State private var showAspectMenu: Bool = false
+    let aspectOptions: [(String, CGFloat)] = [
+        ("9:16", 9.0/16.0),
+        ("16:9", 16.0/9.0),
+        ("1:1", 1.0),
+        ("4:3", 4.0/3.0),
+        ("3:4", 3.0/4.0),
+        ("2:1", 2.0/1.0)
+    ]
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("画布工具栏")
+                    .font(.headline)
+                    .fontWeight(.medium)
+                    .foregroundColor(Theme.primaryTextColor)
+                Spacer()
+            }
+            .padding(12)
+            .background(Theme.headerBackgroundColor)
+            Divider().opacity(0.7)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    CanvasAspectRatioPicker(canvasAspectRatio: $canvasAspectRatio, showAspectMenu: $showAspectMenu, aspectOptions: aspectOptions)
+                    CanvasRowCountStepper(rowCount: $rowCount)
+                    CanvasColCountStepper(colCount: $colCount)
+                    CanvasCellAspectPicker(cellAspect: $cellAspect)
+                    CanvasRowSpacingStepper(rowSpacing: $rowSpacing)
+                    CanvasColSpacingStepper(colSpacing: $colSpacing)
+                }
+                .padding(16)
+            }
+            Spacer()
+        }
+        .background(Theme.secondaryBackgroundColor)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+    }
+}
+
+struct CanvasAspectRatioPicker: View {
+    @Binding var canvasAspectRatio: CGFloat
+    @Binding var showAspectMenu: Bool
+    let aspectOptions: [(String, CGFloat)]
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("画布宽高比")
+                .font(.subheadline)
+                .foregroundColor(.white)
+            Button(action: { showAspectMenu.toggle() }) {
+                HStack(spacing: 4) {
+                    Text(aspectOptions.first(where: { $0.1 == canvasAspectRatio })?.0 ?? "自定义")
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    Image(systemName: "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Color.black.opacity(0.5))
+                .cornerRadius(6)
+            }
+            .buttonStyle(.plain)
+            .popover(isPresented: $showAspectMenu, arrowEdge: .trailing) {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(aspectOptions, id: \.0) { opt in
+                        Button(action: {
+                            canvasAspectRatio = opt.1
+                            showAspectMenu = false
+                        }) {
+                            HStack {
+                                Text(opt.0)
+                                    .fontWeight(canvasAspectRatio == opt.1 ? .bold : .regular)
+                                    .foregroundColor(canvasAspectRatio == opt.1 ? Theme.accentColor : .primary)
+                                Spacer()
+                                if canvasAspectRatio == opt.1 {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(Theme.accentColor)
+                                }
+                            }
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 12)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .frame(width: 120)
+                .background(Color(NSColor.windowBackgroundColor))
+            }
+        }
+    }
+}
+
+struct CanvasRowCountStepper: View {
+    @Binding var rowCount: Int
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("行数")
+                .foregroundColor(.white)
+            Stepper(value: $rowCount, in: 1...12) {
+                Text("\(rowCount)")
+                    .foregroundColor(.white)
+                    .frame(width: 24)
+            }
+            .frame(width: 100)
+        }
+    }
+}
+
+struct CanvasColCountStepper: View {
+    @Binding var colCount: Int
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("列数")
+                .foregroundColor(.white)
+            Stepper(value: $colCount, in: 1...12) {
+                Text("\(colCount)")
+                    .foregroundColor(.white)
+                    .frame(width: 24)
+            }
+            .frame(width: 100)
+        }
+    }
+}
+
+struct CanvasCellAspectPicker: View {
+    @Binding var cellAspect: CGFloat
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("单元格比例")
+                .foregroundColor(.white)
+            Picker("", selection: $cellAspect) {
+                Text("1:1").tag(1.0)
+                Text("4:3").tag(4.0/3.0)
+                Text("16:9").tag(16.0/9.0)
+                Text("3:4").tag(3.0/4.0)
+                Text("9:16").tag(9.0/16.0)
+            }
+            .pickerStyle(MenuPickerStyle())
+            .frame(width: 90)
+        }
+    }
+}
+
+struct CanvasRowSpacingStepper: View {
+    @Binding var rowSpacing: CGFloat
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("行间距")
+                .foregroundColor(.white)
+            Stepper(value: $rowSpacing, in: 0...40, step: 1) {
+                Text("\(Int(rowSpacing))")
+                    .foregroundColor(.white)
+                    .frame(width: 28)
+            }
+            .frame(width: 100)
+        }
+    }
+}
+
+struct CanvasColSpacingStepper: View {
+    @Binding var colSpacing: CGFloat
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("列间距")
+                .foregroundColor(.white)
+            Stepper(value: $colSpacing, in: 0...40, step: 1) {
+                Text("\(Int(colSpacing))")
+                    .foregroundColor(.white)
+                    .frame(width: 28)
+            }
+            .frame(width: 100)
+        }
+    }
 } 

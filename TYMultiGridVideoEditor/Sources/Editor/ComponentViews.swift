@@ -44,60 +44,75 @@ struct CanvasView: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            // 工具栏：宽高比选择
-            HStack {
-                Text("画布宽高比：")
-                    .font(.subheadline)
-                    .foregroundColor(.white)
-                Button(action: { showAspectMenu.toggle() }) {
-                    HStack(spacing: 4) {
-                        Text(aspectOptions.first(where: { $0.1 == canvasAspectRatio })?.0 ?? "自定义")
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                        Image(systemName: "chevron.down")
-                            .font(.caption)
-                            .foregroundColor(.white)
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Color.black.opacity(0.5))
-                    .cornerRadius(6)
+        ZStack {
+            // 背景色+圆角+阴影
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Theme.secondaryBackgroundColor)
+                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+            VStack(spacing: 0) {
+                // 头部栏
+                HStack {
+                    Text("画布区")
+                        .font(.headline)
+                        .fontWeight(.medium)
+                        .foregroundColor(Theme.primaryTextColor)
+                    Spacer()
                 }
-                .buttonStyle(.plain)
-                .popover(isPresented: $showAspectMenu, arrowEdge: .bottom) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        ForEach(aspectOptions, id: \.0) { opt in
-                            Button(action: {
-                                canvasAspectRatio = opt.1
-                                showAspectMenu = false
-                            }) {
-                                HStack {
-                                    Text(opt.0)
-                                        .fontWeight(canvasAspectRatio == opt.1 ? .bold : .regular)
-                                        .foregroundColor(canvasAspectRatio == opt.1 ? Theme.accentColor : .primary)
-                                    Spacer()
-                                    if canvasAspectRatio == opt.1 {
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(Theme.accentColor)
-                                    }
-                                }
-                                .padding(.vertical, 6)
-                                .padding(.horizontal, 12)
-                            }
-                            .buttonStyle(.plain)
+                .padding(12)
+                .background(Theme.headerBackgroundColor)
+                // 分割线
+                Divider().opacity(0.7)
+                // 工具栏
+                HStack {
+                    Text("画布宽高比：")
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                    Button(action: { showAspectMenu.toggle() }) {
+                        HStack(spacing: 4) {
+                            Text(aspectOptions.first(where: { $0.1 == canvasAspectRatio })?.0 ?? "自定义")
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                                .foregroundColor(.white)
                         }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Color.black.opacity(0.5))
+                        .cornerRadius(6)
                     }
-                    .frame(width: 120)
-                    .background(Color(NSColor.windowBackgroundColor))
+                    .buttonStyle(.plain)
+                    .popover(isPresented: $showAspectMenu, arrowEdge: .bottom) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            ForEach(aspectOptions, id: \.0) { opt in
+                                Button(action: {
+                                    canvasAspectRatio = opt.1
+                                    showAspectMenu = false
+                                }) {
+                                    HStack {
+                                        Text(opt.0)
+                                            .fontWeight(canvasAspectRatio == opt.1 ? .bold : .regular)
+                                            .foregroundColor(canvasAspectRatio == opt.1 ? Theme.accentColor : .primary)
+                                        Spacer()
+                                        if canvasAspectRatio == opt.1 {
+                                            Image(systemName: "checkmark")
+                                                .foregroundColor(Theme.accentColor)
+                                        }
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 12)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .frame(width: 120)
+                        .background(Color(NSColor.windowBackgroundColor))
+                    }
+                    Spacer()
                 }
-                Spacer()
-            }
-            .frame(height: 40)
-            .background(Color.black.opacity(0.7))
-            if appState.canvasAssets.isEmpty {
-                PlaceholderView(title: isTargeted ? "拖拽到此处！" : "画布区", color: Theme.playerBackgroundColor)
-            } else {
+                .frame(height: 40)
+                .background(Color.black.opacity(0.7))
+                // 画布宫格区
                 GeometryReader { geo in
                     let rows = defaultRows
                     let cols = defaultCols
@@ -150,8 +165,10 @@ struct CanvasView: View {
                     .padding(canvasPadding)
                 }
                 .aspectRatio(canvasAspectRatio, contentMode: .fit)
-                .padding(.bottom, 60)
-                // 全局控制条
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+                .padding(.bottom, 0)
+                // 播放控制栏
                 VStack(spacing: 0) {
                     HStack {
                         Button(action: togglePlay) {
@@ -187,6 +204,7 @@ struct CanvasView: View {
                 .frame(height: 60)
             }
         }
+        .padding(10)
         .onAppear {
             updateDuration()
         }

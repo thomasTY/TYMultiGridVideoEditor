@@ -3,6 +3,9 @@ import SwiftUI
 struct MediaItemView: View {
     let asset: MediaAsset
     let isSelected: Bool
+    var onDelete: (() -> Void)? = nil
+    var onRename: (() -> Void)? = nil
+    var onDuplicate: (() -> Void)? = nil
     
     @State private var isHovering = false
 
@@ -30,7 +33,7 @@ struct MediaItemView: View {
                     HStack {
                         Spacer()
                         VStack {
-                            Button(action: { print("Delete \(asset.title)") }) {
+                            Button(action: { onDelete?() }) {
                                 Image(systemName: "xmark.circle.fill")
                                     .font(.title3)
                                     .symbolRenderingMode(.palette)
@@ -72,6 +75,12 @@ struct MediaItemView: View {
         }
         .onHover { hovering in
             isHovering = hovering
+        }
+        .contextMenu {
+            Button("重命名", systemImage: "pencil", action: { onRename?() })
+            Button("创建副本", systemImage: "plus.square.on.square", action: { onDuplicate?() })
+            Divider()
+            Button("删除", systemImage: "trash", role: .destructive, action: { onDelete?() })
         }
     }
 } 

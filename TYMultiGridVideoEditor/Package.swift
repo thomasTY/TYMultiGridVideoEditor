@@ -16,7 +16,10 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "TYMultiGridVideoEditor",
-            path: "Sources"
+            path: "Sources",
+            resources: [
+                .process("Editor/Resources")
+            ]
         )
     ]
 ) 

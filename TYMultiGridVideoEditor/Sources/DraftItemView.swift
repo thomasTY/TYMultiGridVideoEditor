@@ -2,6 +2,9 @@ import SwiftUI
 
 struct DraftItemView: View {
     let draft: Draft
+    var onRename: () -> Void
+    var onDuplicate: () -> Void
+    var onDelete: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -23,10 +26,10 @@ struct DraftItemView: View {
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
         .contextMenu {
-            Button("重命名", systemImage: "pencil") { print("Rename \(draft.title)") }
-            Button("创建副本", systemImage: "plus.square.on.square") { print("Copy \(draft.title)") }
+            Button("重命名", systemImage: "pencil") { onRename() }
+            Button("创建副本", systemImage: "plus.square.on.square") { onDuplicate() }
             Divider()
-            Button("删除", systemImage: "trash", role: .destructive) { print("Delete \(draft.title)") }
+            Button("删除", systemImage: "trash", role: .destructive) { onDelete() }
         }
     }
 } 

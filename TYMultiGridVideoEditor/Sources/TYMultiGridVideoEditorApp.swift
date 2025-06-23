@@ -14,6 +14,7 @@ struct TYMultiGridVideoEditorApp: App {
                     WelcomeView()
                 }
             }
+            .environmentObject(appState)
             .frame(minWidth: 1200, minHeight: 800)
             .background(Theme.primaryBackgroundColor.ignoresSafeArea())
         }

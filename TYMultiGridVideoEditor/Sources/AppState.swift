@@ -58,4 +58,19 @@ class AppState: ObservableObject {
         drafts.insert(draft, at: 0)
         return draft
     }
+    
+    func importDraftFromJSON(url: URL) -> Draft? {
+        do {
+            let data = try Data(contentsOf: url)
+            if let dict = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let title = dict["title"] as? String {
+                let draft = Draft(title: title)
+                drafts.insert(draft, at: 0)
+                return draft
+            }
+        } catch {
+            print("导入草稿失败: \(error)")
+        }
+        return nil
+    }
 } 

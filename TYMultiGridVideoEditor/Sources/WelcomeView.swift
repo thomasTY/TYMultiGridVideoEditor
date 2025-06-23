@@ -74,7 +74,19 @@ struct WelcomeView: View {
                 .padding(.top, 25)
 
                 // "导入草稿" button
-                Button(action: { print("导入草稿") }) {
+                Button(action: {
+                    let panel = NSOpenPanel()
+                    panel.allowedFileTypes = ["json"]
+                    panel.allowsMultipleSelection = false
+                    panel.canChooseDirectories = false
+                    panel.title = "导入草稿"
+                    if panel.runModal() == .OK, let url = panel.url {
+                        if let draft = appState.importDraftFromJSON(url: url) {
+                            appState.isEditing = true
+                            // TODO: 进入导入草稿的二级编辑界面（后续实现）
+                        }
+                    }
+                }) {
                     Text("导入草稿")
                         .fontWeight(.medium)
                         .foregroundColor(.white.opacity(0.85))

@@ -2,6 +2,9 @@ import SwiftUI
 
 struct MediaItemView: View {
     let asset: MediaAsset
+    let isSelected: Bool
+    
+    @State private var isHovering = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
@@ -12,8 +15,36 @@ struct MediaItemView: View {
                     .fill(Color.gray.opacity(0.4))
                     .aspectRatio(4/3, contentMode: .fit)
                 
+                if isHovering {
+                    // "Add to canvas" button on bottom right
+                    Button(action: { print("Add \(asset.title) to canvas") }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(.white, Theme.accentColor)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(5)
+                    
+                    // "Delete" button on top right
+                    HStack {
+                        Spacer()
+                        VStack {
+                            Button(action: { print("Delete \(asset.title)") }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.title3)
+                                    .symbolRenderingMode(.palette)
+                                    .foregroundStyle(.black.opacity(0.6), Color(NSColor.controlBackgroundColor))
+                            }
+                            .buttonStyle(.plain)
+                            Spacer()
+                        }
+                    }
+                    .padding(5)
+                }
+                
                 // Display duration for videos
-                if asset.type == .video, let duration = asset.duration {
+                if asset.type == .video, let duration = asset.duration, !isHovering {
                     Text(String(format: "%.1fs", duration))
                         .font(.caption2)
                         .fontWeight(.medium)
@@ -26,6 +57,10 @@ struct MediaItemView: View {
                 }
             }
             .cornerRadius(6)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(isSelected ? Theme.accentColor : Color.clear, lineWidth: 2.5)
+            )
 
             // Title
             Text(asset.title)
@@ -34,6 +69,9 @@ struct MediaItemView: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .onHover { hovering in
+            isHovering = hovering
         }
     }
 } 

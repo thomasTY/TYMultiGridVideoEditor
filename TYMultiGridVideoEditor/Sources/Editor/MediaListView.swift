@@ -4,7 +4,6 @@ import AVFoundation
 
 struct MediaListView: View {
     @ObservedObject private var appState = AppState.shared
-    @State private var mediaAssets: [MediaAsset] = MediaAsset.placeholderAssets()
     @State private var selectedAssetIDs = Set<MediaAsset.ID>()
     @State private var itemFrames: [MediaAsset.ID: CGRect] = [:]
     @State private var scrollOffset: CGFloat = 0
@@ -28,7 +27,7 @@ struct MediaListView: View {
         VStack(spacing: 0) {
             // 顶部工具栏
             HStack {
-                Text("素材 (\(mediaAssets.count))")
+                Text("素材 (\(appState.mediaAssets.count))")
                     .font(.headline)
                     .fontWeight(.medium)
                     .foregroundColor(Theme.primaryTextColor)
@@ -56,7 +55,7 @@ struct MediaListView: View {
                 ZStack {
                     ScrollView {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), spacing: 15)], spacing: 15) {
-                            ForEach(mediaAssets) { asset in
+                            ForEach(appState.mediaAssets) { asset in
                                 MediaItemView(
                                     asset: asset,
                                     isSelected: selectedAssetIDs.contains(asset.id),
@@ -134,7 +133,7 @@ struct MediaListView: View {
     }
     
     private func selectAll() {
-        selectedAssetIDs = Set(mediaAssets.map { $0.id })
+        selectedAssetIDs = Set(appState.mediaAssets.map { $0.id })
     }
     
     private func importMediaFiles() {
@@ -161,12 +160,12 @@ struct MediaListView: View {
                     return nil
                 }
             }
-            mediaAssets.append(contentsOf: newAssets)
+            appState.mediaAssets.append(contentsOf: newAssets)
         }
     }
     
     private func deleteAsset(_ asset: MediaAsset) {
-        mediaAssets.removeAll { $0.id == asset.id }
+        appState.mediaAssets.removeAll { $0.id == asset.id }
         selectedAssetIDs.remove(asset.id)
     }
     
@@ -181,8 +180,8 @@ struct MediaListView: View {
         alert.addButton(withTitle: "取消")
         if alert.runModal() == .alertFirstButtonReturn {
             let newName = input.stringValue
-            if let idx = mediaAssets.firstIndex(where: { $0.id == asset.id }) {
-                mediaAssets[idx].title = newName
+            if let idx = appState.mediaAssets.firstIndex(where: { $0.id == asset.id }) {
+                appState.mediaAssets[idx].title = newName
             }
         }
     }
@@ -190,9 +189,9 @@ struct MediaListView: View {
     private func duplicateAsset(_ asset: MediaAsset) {
         var copy = asset
         copy.title += " 副本"
-        // 新副本要有新id
-        copy = MediaAsset(title: copy.title, type: copy.type, duration: copy.duration)
-        mediaAssets.append(copy)
+        // 新副本要有新id，url和duration也要传递
+        copy = MediaAsset(title: copy.title, type: copy.type, duration: copy.duration, url: copy.url)
+        appState.mediaAssets.append(copy)
     }
     
     private func replaceAsset(_ asset: MediaAsset) {
@@ -209,13 +208,15 @@ struct MediaListView: View {
             let name = url.lastPathComponent
             var newAsset: MediaAsset?
             if ["png", "jpg", "jpeg", "bmp", "gif", "tiff", "heic", "webp"].contains(ext) {
-                newAsset = MediaAsset(title: name, type: .image)
+                newAsset = MediaAsset(title: name, type: .image, url: url)
             } else if ["mp4", "mov", "m4v", "avi", "mkv"].contains(ext) {
-                newAsset = MediaAsset(title: name, type: .video, duration: nil)
+                let assetAV = AVAsset(url: url)
+                let duration = assetAV.duration.seconds
+                newAsset = MediaAsset(title: name, type: .video, duration: duration, url: url)
             }
-            if let newAsset = newAsset, let idx = mediaAssets.firstIndex(where: { $0.id == asset.id }) {
-                let oldId = mediaAssets[idx].id
-                mediaAssets[idx] = newAsset
+            if let newAsset = newAsset, let idx = appState.mediaAssets.firstIndex(where: { $0.id == asset.id }) {
+                let oldId = appState.mediaAssets[idx].id
+                appState.mediaAssets[idx] = newAsset
                 // 同步替换画布中的引用
                 appState.replaceAssetInCanvas(oldId: oldId, newId: newAsset.id)
             }
@@ -237,7 +238,7 @@ struct MediaListView: View {
     private func handleDeleteSelectedAssets() {
         let idsToDelete = Array(selectedAssetIDs)
         for id in idsToDelete {
-            if let asset = mediaAssets.first(where: { $0.id == id }) {
+            if let asset = appState.mediaAssets.first(where: { $0.id == id }) {
                 deleteAsset(asset)
                 appState.removeAssetFromCanvas(asset.id)
             }

@@ -13,6 +13,7 @@ class AppState: ObservableObject {
     @Published var currentEditingDraftId: UUID? = nil
     @Published var assetsInCanvas = Set<UUID>()  // 追踪画布中的素材ID
     @Published var canvasAssets: [UUID] = []  // 新增：全局画布素材ID数组
+    @Published var mediaAssets: [MediaAsset] = MediaAsset.placeholderAssets() // 新增：全局素材详情数组
     
     private let draftsFileName = "drafts.json"
     private var draftsFileURL: URL {

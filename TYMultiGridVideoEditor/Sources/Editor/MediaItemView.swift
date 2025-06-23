@@ -1,4 +1,69 @@
 import SwiftUI
+import AppKit
+import AVFoundation
+
+// 可拖拽的 NSView 包装器
+struct DraggableView: NSViewRepresentable {
+    let asset: MediaAsset
+    
+    func makeNSView(context: Context) -> NSView {
+        let view = DragSourceView(asset: asset)
+        view.wantsLayer = true
+        view.layer?.cornerRadius = 6
+        return view
+    }
+    
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
+// 自定义 NSView 处理拖拽
+class DragSourceView: NSView, NSDraggingSource {
+    let asset: MediaAsset
+    
+    init(asset: MediaAsset) {
+        self.asset = asset
+        super.init(frame: .zero)
+        registerForDraggedTypes([.string])
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func mouseDown(with event: NSEvent) {
+        guard let thumbnail = asset.thumbnail else { return }
+        
+        let dragItem = NSPasteboardItem()
+        dragItem.setString(asset.id.uuidString, forType: .string)
+        
+        // 创建纯图片预览
+        let dragImage = NSImage(size: NSSize(width: 100, height: 75))
+        dragImage.lockFocus()
+        if let cgContext = NSGraphicsContext.current?.cgContext {
+            cgContext.setFillColor(NSColor.clear.cgColor)
+            cgContext.fill(NSRect(x: 0, y: 0, width: 100, height: 75))
+            
+            // 绘制图片，保持比例
+            let imageRect = AVMakeRect(aspectRatio: thumbnail.size, insideRect: NSRect(x: 0, y: 0, width: 100, height: 75))
+            thumbnail.draw(in: imageRect,
+                         from: NSRect(x: 0, y: 0, width: thumbnail.size.width, height: thumbnail.size.height),
+                         operation: .sourceOver,
+                         fraction: 1.0)
+        }
+        dragImage.unlockFocus()
+        
+        // 开始拖拽会话
+        let draggingItem = NSDraggingItem(pasteboardWriter: dragItem)
+        draggingItem.setDraggingFrame(NSRect(origin: .zero, size: dragImage.size), contents: dragImage)
+        
+        beginDraggingSession(with: [draggingItem], event: event, source: self)
+    }
+    
+    // NSDraggingSource 协议方法（可空实现）
+    func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
+        return .copy
+    }
+}
 
 struct MediaItemView: View {
     let asset: MediaAsset
@@ -11,13 +76,27 @@ struct MediaItemView: View {
     
     @State private var isHovering = false
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            // Thumbnail
-            ZStack {
+    // 主要内容视图（缩略图），用于正常显示
+    private var thumbnailContent: some View {
+        Group {
+            if let thumbnail = asset.thumbnail {
+                Image(nsImage: thumbnail)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipShape(Rectangle())
+            } else {
                 Rectangle()
                     .fill(Color.gray.opacity(0.4))
-                    .aspectRatio(4/3, contentMode: .fit)
+            }
+        }
+        .aspectRatio(4/3, contentMode: .fit)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            ZStack {
+                thumbnailContent
                 // 已添加标签，左上角
                 if isAddedToCanvas {
                     VStack {
@@ -87,7 +166,6 @@ struct MediaItemView: View {
                 RoundedRectangle(cornerRadius: 6)
                     .stroke(isSelected ? Theme.accentColor : Color.clear, lineWidth: 2.5)
             )
-
             // Title
             Text(asset.title)
                 .font(.caption)
@@ -106,6 +184,20 @@ struct MediaItemView: View {
         }
         .onDrag {
             NSItemProvider(object: asset.id.uuidString as NSString)
+        } preview: {
+            Group {
+                if let thumbnail = asset.thumbnail {
+                    Image(nsImage: thumbnail)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.4))
+                }
+            }
+            .frame(width: 100, height: 75)
+            .cornerRadius(6)
+            .clipped()
         }
     }
 } 

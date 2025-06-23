@@ -14,20 +14,64 @@ struct PlaceholderView: View {
 }
 
 struct CanvasView: View {
+    @ObservedObject private var appState = AppState.shared
     @State private var isTargeted = false
+    @State private var canvasAssets: [UUID] = []  // 存储画布中的素材ID
+    
     var body: some View {
-        PlaceholderView(title: isTargeted ? "拖拽到此处！" : "画布区", color: Theme.playerBackgroundColor)
-            .onDrop(of: [UTType.text], isTargeted: $isTargeted) { providers in
-                if let provider = providers.first {
-                    _ = provider.loadObject(ofClass: NSString.self) { object, _ in
-                        if let idStr = object as? String {
-                            print("[Canvas] 接收到拖拽素材ID: \(idStr)")
+        VStack {
+            if canvasAssets.isEmpty {
+                PlaceholderView(title: isTargeted ? "拖拽到此处！" : "画布区", color: Theme.playerBackgroundColor)
+            } else {
+                ScrollView {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 10)], spacing: 10) {
+                        ForEach(canvasAssets, id: \.self) { assetId in
+                            ZStack(alignment: .topTrailing) {
+                                Rectangle()
+                                    .fill(Theme.playerBackgroundColor)
+                                    .aspectRatio(4/3, contentMode: .fit)
+                                    .cornerRadius(6)
+                                
+                                // 删除按钮
+                                Button(action: { removeAsset(assetId) }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.title3)
+                                        .symbolRenderingMode(.palette)
+                                        .foregroundStyle(.white, Theme.accentColor)
+                                }
+                                .buttonStyle(.plain)
+                                .padding(5)
+                            }
                         }
                     }
-                    return true
+                    .padding(10)
                 }
-                return false
             }
+        }
+        .onDrop(of: [UTType.text], isTargeted: $isTargeted) { providers in
+            if let provider = providers.first {
+                _ = provider.loadObject(ofClass: NSString.self) { object, _ in
+                    if let idStr = object as? String,
+                       let assetId = UUID(uuidString: idStr) {
+                        addAsset(assetId)
+                    }
+                }
+                return true
+            }
+            return false
+        }
+    }
+    
+    private func addAsset(_ assetId: UUID) {
+        if !canvasAssets.contains(assetId) {
+            canvasAssets.append(assetId)
+            appState.addAssetToCanvas(assetId)
+        }
+    }
+    
+    private func removeAsset(_ assetId: UUID) {
+        canvasAssets.removeAll { $0 == assetId }
+        appState.removeAssetFromCanvas(assetId)
     }
 }
 

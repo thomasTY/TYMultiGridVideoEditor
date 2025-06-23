@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import AVFoundation
 
 struct MediaListView: View {
     @ObservedObject private var appState = AppState.shared
@@ -95,9 +96,12 @@ struct MediaListView: View {
                 let ext = url.pathExtension.lowercased()
                 let name = url.lastPathComponent
                 if ["png", "jpg", "jpeg", "bmp", "gif", "tiff", "heic", "webp"].contains(ext) {
-                    return MediaAsset(title: name, type: .image)
+                    return MediaAsset(title: name, type: .image, url: url)
                 } else if ["mp4", "mov", "m4v", "avi", "mkv"].contains(ext) {
-                    return MediaAsset(title: name, type: .video, duration: nil) // 暂不分析时长
+                    // 获取视频时长
+                    let asset = AVAsset(url: url)
+                    let duration = asset.duration.seconds
+                    return MediaAsset(title: name, type: .video, duration: duration, url: url)
                 } else {
                     return nil
                 }

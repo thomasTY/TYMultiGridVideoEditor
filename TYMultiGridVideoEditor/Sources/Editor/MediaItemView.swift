@@ -6,6 +6,7 @@ struct MediaItemView: View {
     var onDelete: (() -> Void)? = nil
     var onRename: (() -> Void)? = nil
     var onDuplicate: (() -> Void)? = nil
+    var onReplace: (() -> Void)? = nil
     
     @State private var isHovering = false
 
@@ -77,10 +78,9 @@ struct MediaItemView: View {
             isHovering = hovering
         }
         .contextMenu {
-            Button("重命名", systemImage: "pencil", action: { onRename?() })
-            Button("创建副本", systemImage: "plus.square.on.square", action: { onDuplicate?() })
-            Divider()
-            Button("删除", systemImage: "trash", role: .destructive, action: { onDelete?() })
+            Button("替换素材", systemImage: "arrow.triangle.2.circlepath") {
+                onReplace?()
+            }
         }
         .onDrag {
             NSItemProvider(object: asset.id.uuidString as NSString)

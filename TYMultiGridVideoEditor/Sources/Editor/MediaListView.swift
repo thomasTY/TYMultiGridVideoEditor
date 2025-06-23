@@ -41,7 +41,8 @@ struct MediaListView: View {
                             isSelected: selectedAssetIDs.contains(asset.id),
                             onDelete: { deleteAsset(asset) },
                             onRename: { renameAsset(asset) },
-                            onDuplicate: { duplicateAsset(asset) }
+                            onDuplicate: { duplicateAsset(asset) },
+                            onReplace: { replaceAsset(asset) }
                         )
                         .onTapGesture { event in
                             handleSelection(for: asset, with: event)
@@ -131,5 +132,30 @@ struct MediaListView: View {
         // 新副本要有新id
         copy = MediaAsset(title: copy.title, type: copy.type, duration: copy.duration)
         mediaAssets.append(copy)
+    }
+    
+    private func replaceAsset(_ asset: MediaAsset) {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.allowedFileTypes = [
+            "png", "jpg", "jpeg", "bmp", "gif", "tiff", "heic", "webp",
+            "mp4", "mov", "m4v", "avi", "mkv"
+        ]
+        panel.title = "选择替换素材"
+        if panel.runModal() == .OK, let url = panel.url {
+            let ext = url.pathExtension.lowercased()
+            let name = url.lastPathComponent
+            var newAsset: MediaAsset?
+            if ["png", "jpg", "jpeg", "bmp", "gif", "tiff", "heic", "webp"].contains(ext) {
+                newAsset = MediaAsset(title: name, type: .image)
+            } else if ["mp4", "mov", "m4v", "avi", "mkv"].contains(ext) {
+                newAsset = MediaAsset(title: name, type: .video, duration: nil)
+            }
+            if let newAsset = newAsset, let idx = mediaAssets.firstIndex(where: { $0.id == asset.id }) {
+                mediaAssets[idx] = newAsset
+                // TODO: 如果画布区有引用该素材，也应同步替换
+            }
+        }
     }
 } 

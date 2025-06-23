@@ -8,11 +8,18 @@ struct DraftItemView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .aspectRatio(16/9, contentMode: .fit)
-                .cornerRadius(8)
-                .overlay(Image(systemName: "film").font(.largeTitle).foregroundColor(.white))
+            if let cover = draft.coverImageName, !cover.isEmpty, let img = NSImage(named: cover) {
+                Image(nsImage: img)
+                    .resizable()
+                    .aspectRatio(16/9, contentMode: .fit)
+                    .cornerRadius(8)
+            } else {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .aspectRatio(16/9, contentMode: .fit)
+                    .cornerRadius(8)
+                    .overlay(Image(systemName: "film").font(.largeTitle).foregroundColor(.white))
+            }
 
             Text(draft.title)
                 .font(.headline)

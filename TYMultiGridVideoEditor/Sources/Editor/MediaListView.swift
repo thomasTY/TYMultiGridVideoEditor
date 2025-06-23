@@ -7,7 +7,6 @@ struct MediaListView: View {
     @State private var mediaAssets: [MediaAsset] = MediaAsset.placeholderAssets()
     @State private var selectedAssetIDs = Set<MediaAsset.ID>()
     @State private var itemFrames: [MediaAsset.ID: CGRect] = [:]
-    @State private var selectionBox: CGRect? = nil
     @State private var scrollOffset: CGFloat = 0
 
     // 用于收集每个单元格frame的PreferenceKey
@@ -106,48 +105,6 @@ struct MediaListView: View {
                         // Click on empty space to deselect all
                         selectedAssetIDs.removeAll()
                     }
-                    // SelectionBoxView 覆盖在素材区上方
-                    SelectionBoxView { rect, clickPoint in
-                        print("[调试] 选区rect:", rect ?? .zero)
-                        for (id, frame) in itemFrames {
-                            if let asset = mediaAssets.first(where: { $0.id == id }) {
-                                print("[调试] item", asset.title, "frame:", frame)
-                            }
-                        }
-                        selectionBox = rect
-                        if let rect = rect {
-                            // 坐标系翻转：将选区rect的y坐标从左下角为原点转为左上角为原点
-                            let containerHeight = geo.size.height
-                            let flippedRect = CGRect(
-                                x: rect.origin.x,
-                                y: containerHeight - rect.origin.y - rect.height,
-                                width: rect.width,
-                                height: rect.height
-                            )
-                            let selected = itemFrames.filter { pair in
-                                var adjustedFrame = pair.value
-                                adjustedFrame.origin.y += scrollOffset
-                                print("[调试] adjustedFrame:", adjustedFrame, "scrollOffset:", scrollOffset)
-                                return adjustedFrame.intersects(flippedRect)
-                            }.map { $0.key }
-                            selectedAssetIDs = Set(selected)
-                        } else if let clickPoint = clickPoint {
-                            // 修复：只有点击空白处才清空选中，点击单元格不清空
-                            let containerHeight = geo.size.height
-                            let flippedPoint = CGPoint(x: clickPoint.x, y: containerHeight - clickPoint.y)
-                            let isInAnyItem = itemFrames.contains { (_, frame) in
-                                var adjustedFrame = frame
-                                adjustedFrame.origin.y += scrollOffset
-                                return adjustedFrame.contains(flippedPoint)
-                            }
-                            if !isInAnyItem {
-                                selectedAssetIDs.removeAll()
-                            }
-                        }
-                    }
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .allowsHitTesting(true)
-                    .background(Color.clear)
                 }
             }
         }

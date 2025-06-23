@@ -82,20 +82,21 @@ struct MediaItemView: View {
             if let thumbnail = asset.thumbnail {
                 Image(nsImage: thumbnail)
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipShape(Rectangle())
+                    .aspectRatio(contentMode: .fit)  // 改为.fit以完整显示内容
+                    .frame(width: 110, height: 82.5)  // 固定宽高，保持4:3比例
+                    .background(Color.black.opacity(0.2))  // 添加背景色以显示空白区域
             } else {
                 Rectangle()
                     .fill(Color.gray.opacity(0.4))
+                    .frame(width: 110, height: 82.5)
             }
         }
-        .aspectRatio(4/3, contentMode: .fit)
+        .cornerRadius(6)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            ZStack {
+        VStack(alignment: .leading, spacing: 4) {
+            ZStack(alignment: .center) {
                 thumbnailContent
                 // 已添加标签，左上角
                 if isAddedToCanvas {
@@ -104,16 +105,16 @@ struct MediaItemView: View {
                             Text("已添加")
                                 .font(.caption2)
                                 .fontWeight(.medium)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 2)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 1)
                                 .background(Theme.accentColor)
                                 .foregroundColor(.white)
-                                .cornerRadius(4)
-                                .padding(5)
+                                .cornerRadius(3)
                             Spacer()
                         }
                         Spacer()
                     }
+                    .padding(4)
                 }
                 // 视频素材显示时长，左下角
                 VStack {
@@ -123,26 +124,26 @@ struct MediaItemView: View {
                             Text(String(format: "%.1fs", duration))
                                 .font(.caption2)
                                 .fontWeight(.medium)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 2)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 1)
                                 .background(Color.black.opacity(0.6))
                                 .foregroundColor(.white)
-                                .cornerRadius(4)
-                                .padding(5)
+                                .cornerRadius(3)
+                            Spacer()
                         }
-                        Spacer()
                     }
+                    .padding(4)
                 }
                 if isHovering {
                     // "Add to canvas" button on bottom right
                     Button(action: { print("Add \(asset.title) to canvas") }) {
                         Image(systemName: "plus.circle.fill")
-                            .font(.title2)
+                            .font(.title3)
                             .symbolRenderingMode(.palette)
                             .foregroundStyle(.white, Theme.accentColor)
                     }
                     .buttonStyle(.plain)
-                    .padding(5)
+                    .padding(4)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                     // "Delete" button on top right
                     HStack {
@@ -158,22 +159,24 @@ struct MediaItemView: View {
                             Spacer()
                         }
                     }
-                    .padding(5)
+                    .padding(4)
                 }
             }
+            .frame(width: 110, height: 82.5)  // 确保ZStack也是固定大小
             .cornerRadius(6)
             .overlay(
                 RoundedRectangle(cornerRadius: 6)
-                    .stroke(isSelected ? Theme.accentColor : Color.clear, lineWidth: 2.5)
+                    .stroke(isSelected ? Theme.accentColor : Color.clear, lineWidth: 2)
             )
             // Title
             Text(asset.title)
-                .font(.caption)
+                .font(.caption2)  // 使用更小的字体
                 .foregroundColor(Theme.secondaryTextColor)
                 .lineLimit(1)
                 .truncationMode(.middle)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(width: 110, alignment: .leading)  // 固定宽度，确保文字不会超出
         }
+        .frame(width: 110)  // 整个VStack固定宽度
         .onHover { hovering in
             isHovering = hovering
         }
@@ -185,19 +188,7 @@ struct MediaItemView: View {
         .onDrag {
             NSItemProvider(object: asset.id.uuidString as NSString)
         } preview: {
-            Group {
-                if let thumbnail = asset.thumbnail {
-                    Image(nsImage: thumbnail)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } else {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.4))
-                }
-            }
-            .frame(width: 100, height: 75)
-            .cornerRadius(6)
-            .clipped()
+            thumbnailContent
         }
     }
 } 

@@ -6,10 +6,28 @@ struct MediaListView: View {
     @ObservedObject private var appState = AppState.shared
     @State private var mediaAssets: [MediaAsset] = MediaAsset.placeholderAssets()
     @State private var selectedAssetIDs = Set<MediaAsset.ID>()
+    @State private var itemFrames: [MediaAsset.ID: CGRect] = [:]
+    @State private var selectionBox: CGRect? = nil
+    @State private var scrollOffset: CGFloat = 0
+
+    // 用于收集每个单元格frame的PreferenceKey
+    struct ItemFramePreferenceKey: PreferenceKey {
+        static var defaultValue: [MediaAsset.ID: CGRect] = [:]
+        static func reduce(value: inout [MediaAsset.ID: CGRect], nextValue: () -> [MediaAsset.ID: CGRect]) {
+            value.merge(nextValue(), uniquingKeysWith: { $1 })
+        }
+    }
+
+    struct ScrollOffsetPreferenceKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+            value = nextValue()
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            // 顶部工具栏
             HStack {
                 Text("素材 (\(mediaAssets.count))")
                     .font(.headline)
@@ -30,41 +48,107 @@ struct MediaListView: View {
                 .buttonStyle(.plain)
             }
             .padding(12)
-            .background(Theme.secondaryBackgroundColor)
-            
-            Divider().opacity(0.5)
+            .background(Theme.headerBackgroundColor)
+            // 工具栏和内容区之间加分割线
+            Divider().opacity(0.7)
 
-            // Grid of media assets
-            ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), spacing: 15)], spacing: 15) {
-                    ForEach(mediaAssets) { asset in
-                        MediaItemView(
-                            asset: asset,
-                            isSelected: selectedAssetIDs.contains(asset.id),
-                            isAddedToCanvas: appState.isAssetInCanvas(asset.id),
-                            onDelete: {
-                                if selectedAssetIDs.contains(asset.id) && selectedAssetIDs.count > 1 {
-                                    handleDeleteSelectedAssets()
-                                } else {
-                                    deleteAsset(asset)
-                                    appState.removeAssetFromCanvas(asset.id)
+            // 内容区（仅内容区可选区）
+            GeometryReader { geo in
+                ZStack {
+                    ScrollView {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), spacing: 15)], spacing: 15) {
+                            ForEach(mediaAssets) { asset in
+                                MediaItemView(
+                                    asset: asset,
+                                    isSelected: selectedAssetIDs.contains(asset.id),
+                                    isAddedToCanvas: appState.isAssetInCanvas(asset.id),
+                                    onDelete: {
+                                        if selectedAssetIDs.contains(asset.id) && selectedAssetIDs.count > 1 {
+                                            handleDeleteSelectedAssets()
+                                        } else {
+                                            deleteAsset(asset)
+                                            appState.removeAssetFromCanvas(asset.id)
+                                        }
+                                    },
+                                    onRename: { renameAsset(asset) },
+                                    onDuplicate: { duplicateAsset(asset) },
+                                    onReplace: { replaceAsset(asset) },
+                                    onAddToCanvas: { handleAddToCanvas(asset) }
+                                )
+                                .onTapGesture { event in
+                                    handleSelection(for: asset, with: event)
                                 }
-                            },
-                            onRename: { renameAsset(asset) },
-                            onDuplicate: { duplicateAsset(asset) },
-                            onReplace: { replaceAsset(asset) },
-                            onAddToCanvas: { handleAddToCanvas(asset) }
+                                .background(
+                                    GeometryReader { geoItem in
+                                        Color.clear
+                                            .preference(key: ItemFramePreferenceKey.self, value: [asset.id: geoItem.frame(in: .named("mediaListArea"))])
+                                    }
+                                )
+                            }
+                        }
+                        .padding(12)
+                        // .background(Color(NSColor.windowBackgroundColor).opacity(0.97))
+                        .background(
+                            GeometryReader { geo in
+                                Color.clear
+                                    .preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("mediaListArea")).minY)
+                            }
                         )
-                        .onTapGesture { event in
-                            handleSelection(for: asset, with: event)
+                    }
+                    .coordinateSpace(name: "mediaListArea")
+                    .onPreferenceChange(ItemFramePreferenceKey.self) { value in
+                        itemFrames = value
+                    }
+                    .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                        scrollOffset = value
+                    }
+                    .onTapGesture {
+                        // Click on empty space to deselect all
+                        selectedAssetIDs.removeAll()
+                    }
+                    // SelectionBoxView 覆盖在素材区上方
+                    SelectionBoxView { rect, clickPoint in
+                        print("[调试] 选区rect:", rect ?? .zero)
+                        for (id, frame) in itemFrames {
+                            if let asset = mediaAssets.first(where: { $0.id == id }) {
+                                print("[调试] item", asset.title, "frame:", frame)
+                            }
+                        }
+                        selectionBox = rect
+                        if let rect = rect {
+                            // 坐标系翻转：将选区rect的y坐标从左下角为原点转为左上角为原点
+                            let containerHeight = geo.size.height
+                            let flippedRect = CGRect(
+                                x: rect.origin.x,
+                                y: containerHeight - rect.origin.y - rect.height,
+                                width: rect.width,
+                                height: rect.height
+                            )
+                            let selected = itemFrames.filter { pair in
+                                var adjustedFrame = pair.value
+                                adjustedFrame.origin.y += scrollOffset
+                                print("[调试] adjustedFrame:", adjustedFrame, "scrollOffset:", scrollOffset)
+                                return adjustedFrame.intersects(flippedRect)
+                            }.map { $0.key }
+                            selectedAssetIDs = Set(selected)
+                        } else if let clickPoint = clickPoint {
+                            // 修复：只有点击空白处才清空选中，点击单元格不清空
+                            let containerHeight = geo.size.height
+                            let flippedPoint = CGPoint(x: clickPoint.x, y: containerHeight - clickPoint.y)
+                            let isInAnyItem = itemFrames.contains { (_, frame) in
+                                var adjustedFrame = frame
+                                adjustedFrame.origin.y += scrollOffset
+                                return adjustedFrame.contains(flippedPoint)
+                            }
+                            if !isInAnyItem {
+                                selectedAssetIDs.removeAll()
+                            }
                         }
                     }
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .allowsHitTesting(true)
+                    .background(Color.clear)
                 }
-                .padding(12)
-            }
-            .onTapGesture {
-                // Click on empty space to deselect all
-                selectedAssetIDs.removeAll()
             }
         }
         .background(Theme.secondaryBackgroundColor)

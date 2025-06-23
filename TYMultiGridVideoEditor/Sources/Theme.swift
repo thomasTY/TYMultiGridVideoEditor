@@ -7,6 +7,9 @@ struct Theme {
     /// A slightly lighter dark color for panels and components.
     static let secondaryBackgroundColor = Color(hex: "#252525")
     
+    /// A slightly lighter dark color for panels and components.
+    static let headerBackgroundColor = Color(hex: "#333333")
+    
     /// The color for the canvas/player background.
     static let playerBackgroundColor = Color(hex: "#0E0E0E")
     

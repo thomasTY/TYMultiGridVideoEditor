@@ -57,7 +57,9 @@ struct WelcomeView: View {
             VStack(spacing: 0) {
                 // "开始创作" button
                 Button(action: {
+                    let draft = appState.createDraft()
                     appState.isEditing = true
+                    // TODO: 进入新建草稿的二级编辑界面（后续实现）
                 }) {
                     Text("开始创作")
                         .font(.title)

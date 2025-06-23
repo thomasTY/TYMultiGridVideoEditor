@@ -33,4 +33,29 @@ class AppState: ObservableObject {
         guard let idx = drafts.firstIndex(where: { $0.id == id }) else { return }
         drafts[idx].title = newTitle
     }
+    
+    func createDraft() -> Draft {
+        // 获取当前日期字符串，如"6月10日"
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "zh_CN")
+        dateFormatter.dateFormat = "M月d日"
+        let baseTitle = dateFormatter.string(from: Date())
+        
+        // 查找已有同名草稿，统计编号
+        let sameDayDrafts = drafts.filter { $0.title == baseTitle || $0.title.hasPrefix(baseTitle + "-") }
+        var newTitle = baseTitle
+        if !sameDayDrafts.isEmpty {
+            // 找最大编号
+            let numbers = sameDayDrafts.compactMap { draft -> Int? in
+                let parts = draft.title.components(separatedBy: "-")
+                if parts.count == 2, let num = Int(parts[1]) { return num }
+                return nil
+            }
+            let nextNum = (numbers.max() ?? 0) + 1
+            newTitle = "\(baseTitle)-\(nextNum)"
+        }
+        let draft = Draft(title: newTitle)
+        drafts.insert(draft, at: 0)
+        return draft
+    }
 } 

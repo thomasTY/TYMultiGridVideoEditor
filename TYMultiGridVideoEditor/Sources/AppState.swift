@@ -11,6 +11,7 @@ class AppState: ObservableObject {
         Draft(title: "6月8日")
     ]
     @Published var currentEditingDraftId: UUID? = nil
+    @Published var assetsInCanvas = Set<UUID>()  // 追踪画布中的素材ID
     
     private let draftsFileName = "drafts.json"
     private var draftsFileURL: URL {
@@ -128,5 +129,17 @@ class AppState: ObservableObject {
             drafts[idx].title = baseTitle
         }
         saveDrafts()
+    }
+    
+    func addAssetToCanvas(_ assetId: UUID) {
+        assetsInCanvas.insert(assetId)
+    }
+    
+    func removeAssetFromCanvas(_ assetId: UUID) {
+        assetsInCanvas.remove(assetId)
+    }
+    
+    func isAssetInCanvas(_ assetId: UUID) -> Bool {
+        return assetsInCanvas.contains(assetId)
     }
 } 

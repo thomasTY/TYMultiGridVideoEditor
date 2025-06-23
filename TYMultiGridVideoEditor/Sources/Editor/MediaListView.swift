@@ -2,6 +2,7 @@ import SwiftUI
 import AppKit
 
 struct MediaListView: View {
+    @ObservedObject private var appState = AppState.shared
     @State private var mediaAssets: [MediaAsset] = MediaAsset.placeholderAssets()
     @State private var selectedAssetIDs = Set<MediaAsset.ID>()
 
@@ -39,6 +40,7 @@ struct MediaListView: View {
                         MediaItemView(
                             asset: asset,
                             isSelected: selectedAssetIDs.contains(asset.id),
+                            isAddedToCanvas: appState.isAssetInCanvas(asset.id),
                             onDelete: { deleteAsset(asset) },
                             onRename: { renameAsset(asset) },
                             onDuplicate: { duplicateAsset(asset) },

@@ -23,26 +23,134 @@ struct CanvasView: View {
     @State private var currentTime: Double = 0
     @State private var duration: Double = 5 // 默认5s，后续根据所有素材最大时长动态调整
     @State private var timer: Timer? = nil
+    // 2.1.8参数
+    let defaultRows: Int = 5
+    let defaultCols: Int = 3
+    let cellAspect: CGFloat = 1.0 // 1:1
+    let cellSpacing: CGFloat = 0  // 无间距
+    let canvasPadding: CGFloat = 0 // 无内边距
+    // 选中单元格
+    @State private var selectedCell: Int? = nil
+    // 画布宽高比
+    @State private var canvasAspectRatio: CGFloat = 9.0/16.0
+    @State private var showAspectMenu: Bool = false
+    let aspectOptions: [(String, CGFloat)] = [
+        ("9:16", 9.0/16.0),
+        ("16:9", 16.0/9.0),
+        ("1:1", 1.0),
+        ("4:3", 4.0/3.0),
+        ("3:4", 3.0/4.0),
+        ("2:1", 2.0/1.0)
+    ]
 
     var body: some View {
         VStack(spacing: 0) {
+            // 工具栏：宽高比选择
+            HStack {
+                Text("画布宽高比：")
+                    .font(.subheadline)
+                    .foregroundColor(.white)
+                Button(action: { showAspectMenu.toggle() }) {
+                    HStack(spacing: 4) {
+                        Text(aspectOptions.first(where: { $0.1 == canvasAspectRatio })?.0 ?? "自定义")
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        Image(systemName: "chevron.down")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Color.black.opacity(0.5))
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+                .popover(isPresented: $showAspectMenu, arrowEdge: .bottom) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(aspectOptions, id: \.0) { opt in
+                            Button(action: {
+                                canvasAspectRatio = opt.1
+                                showAspectMenu = false
+                            }) {
+                                HStack {
+                                    Text(opt.0)
+                                        .fontWeight(canvasAspectRatio == opt.1 ? .bold : .regular)
+                                        .foregroundColor(canvasAspectRatio == opt.1 ? Theme.accentColor : .primary)
+                                    Spacer()
+                                    if canvasAspectRatio == opt.1 {
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(Theme.accentColor)
+                                    }
+                                }
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 12)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .frame(width: 120)
+                    .background(Color(NSColor.windowBackgroundColor))
+                }
+                Spacer()
+            }
+            .frame(height: 40)
+            .background(Color.black.opacity(0.7))
             if appState.canvasAssets.isEmpty {
                 PlaceholderView(title: isTargeted ? "拖拽到此处！" : "画布区", color: Theme.playerBackgroundColor)
             } else {
-                ScrollView {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 10)], spacing: 10) {
-                        ForEach(appState.canvasAssets, id: \.self) { assetId in
-                            CanvasAssetCell(
-                                assetId: assetId,
-                                currentTime: currentTime,
-                                isPlaying: isPlaying,
-                                isMuted: isMuted,
-                                removeAction: { removeAsset(assetId) }
-                            )
+                GeometryReader { geo in
+                    let rows = defaultRows
+                    let cols = defaultCols
+                    let W = geo.size.width - 2 * canvasPadding
+                    let H = geo.size.height - 60 - 2 * canvasPadding // 60为控制条预留高度
+                    let cellH = H / CGFloat(rows)
+                    let cellW = cellH * cellAspect
+                    let totalCellW = CGFloat(cols) * cellW
+                    let colSpacing: CGFloat = cols > 1 ? max((W - totalCellW) / CGFloat(cols - 1), 0) : 0
+                    VStack(spacing: 0) {
+                        ForEach(0..<rows, id: \.self) { row in
+                            HStack(spacing: colSpacing) {
+                                ForEach(0..<cols, id: \.self) { col in
+                                    let idx = row * cols + col
+                                    let isSelected = selectedCell == idx
+                                    if idx < appState.canvasAssets.count {
+                                        let assetId = appState.canvasAssets[idx]
+                                        CanvasAssetCell(
+                                            assetId: assetId,
+                                            currentTime: currentTime,
+                                            isPlaying: isPlaying,
+                                            isMuted: isMuted,
+                                            cellSize: CGSize(width: cellW, height: cellH),
+                                            isSelected: isSelected,
+                                            showSplitLine: true,
+                                            removeAction: { removeAsset(assetId) }
+                                        )
+                                        .onTapGesture {
+                                            selectedCell = (selectedCell == idx) ? nil : idx
+                                        }
+                                    } else {
+                                        CanvasAssetCell(
+                                            assetId: nil,
+                                            currentTime: currentTime,
+                                            isPlaying: isPlaying,
+                                            isMuted: isMuted,
+                                            cellSize: CGSize(width: cellW, height: cellH),
+                                            isSelected: isSelected,
+                                            showSplitLine: true,
+                                            removeAction: nil
+                                        )
+                                        .onTapGesture {
+                                            selectedCell = (selectedCell == idx) ? nil : idx
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-                    .padding(10)
+                    .padding(canvasPadding)
                 }
+                .aspectRatio(canvasAspectRatio, contentMode: .fit)
+                .padding(.bottom, 60)
                 // 全局控制条
                 VStack(spacing: 0) {
                     HStack {
@@ -76,6 +184,7 @@ struct CanvasView: View {
                     .padding([.leading, .trailing, .bottom], 8)
                 }
                 .background(Color.black.opacity(0.7))
+                .frame(height: 60)
             }
         }
         .onAppear {
@@ -175,54 +284,123 @@ struct CanvasView: View {
 }
 
 struct CanvasAssetCell: View {
-    let assetId: UUID
+    let assetId: UUID?
     let currentTime: Double
     let isPlaying: Bool
     let isMuted: Bool
-    let removeAction: () -> Void
+    let cellSize: CGSize
+    let isSelected: Bool
+    let showSplitLine: Bool
+    let removeAction: (() -> Void)?
     @ObservedObject private var appState = AppState.shared
 
     var body: some View {
-        let asset = appState.mediaAssets.first { $0.id == assetId }
-        ZStack(alignment: .topTrailing) {
-            if let asset = asset {
-                if asset.url == nil {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .overlay(Text("无效素材").foregroundColor(.gray).font(.caption))
-                        .aspectRatio(4/3, contentMode: .fit)
-                        .cornerRadius(6)
-                } else if asset.type == .image {
-                    if currentTime <= 5, let img = asset.thumbnail {
-                        Image(nsImage: img)
-                            .resizable()
-                            .aspectRatio(4/3, contentMode: .fit)
-                            .cornerRadius(6)
-                    } else if currentTime <= 5 {
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .aspectRatio(4/3, contentMode: .fit)
-                            .cornerRadius(6)
+        ZStack {
+            // 遮罩层
+            Rectangle()
+                .fill(Color.black.opacity(0.85))
+                .frame(width: cellSize.width, height: cellSize.height)
+                .clipped()
+                .overlay(
+                    Group {
+                        if let assetId = assetId, let asset = appState.mediaAssets.first(where: { $0.id == assetId }) {
+                            if asset.url == nil {
+                                Rectangle()
+                                    .fill(Color.gray.opacity(0.2))
+                                    .overlay(Text("无效素材").foregroundColor(.gray).font(.caption))
+                            } else if asset.type == .image {
+                                if currentTime <= 5, let img = asset.thumbnail {
+                                    Image(nsImage: img)
+                                        .resizable()
+                                        .scaledToFill()
+                                } else if currentTime <= 5 {
+                                    Rectangle().fill(Color.gray.opacity(0.3))
+                                }
+                            } else if asset.type == .video, let url = asset.url {
+                                GlobalSyncVideoPlayer(
+                                    url: url,
+                                    currentTime: .constant(currentTime),
+                                    isPlaying: .constant(isPlaying),
+                                    isMuted: .constant(isMuted)
+                                )
+                            }
+                        }
                     }
-                } else if asset.type == .video, let url = asset.url {
-                    GlobalSyncVideoPlayer(
-                        url: url,
-                        currentTime: .constant(currentTime),
-                        isPlaying: .constant(isPlaying),
-                        isMuted: .constant(isMuted)
-                    )
-                    .aspectRatio(4/3, contentMode: .fit)
-                    .cornerRadius(6)
+                    .frame(width: cellSize.width, height: cellSize.height)
+                    .clipped()
+                )
+            // 分割线（浅蓝色粗实线）
+            if showSplitLine {
+                SplitLineOverlay(size: cellSize, color: Color.blue.opacity(0.7), lineWidth: 3)
+            }
+            // 选中时显示白色虚线和4角圆点
+            if isSelected {
+                RoundedRectangle(cornerRadius: 0)
+                    .stroke(style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+                    .foregroundColor(.white)
+                    .frame(width: cellSize.width-2, height: cellSize.height-2)
+                // 4角圆点
+                ForEach(0..<4) { i in
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 10, height: 10)
+                        .position(cornerPosition(i, in: cellSize))
                 }
             }
-            Button(action: removeAction) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title3)
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(.white, Theme.accentColor)
+            // 删除按钮
+            if let removeAction = removeAction {
+                Button(action: removeAction) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.white, Theme.accentColor)
+                }
+                .buttonStyle(.plain)
+                .padding(5)
+                .position(x: cellSize.width-16, y: 16)
             }
-            .buttonStyle(.plain)
-            .padding(5)
+        }
+        .frame(width: cellSize.width, height: cellSize.height)
+    }
+    // 4角圆点位置
+    private func cornerPosition(_ idx: Int, in size: CGSize) -> CGPoint {
+        switch idx {
+        case 0: return CGPoint(x: 0, y: 0)
+        case 1: return CGPoint(x: size.width, y: 0)
+        case 2: return CGPoint(x: 0, y: size.height)
+        case 3: return CGPoint(x: size.width, y: size.height)
+        default: return .zero
+        }
+    }
+}
+
+// 分割线覆盖层
+struct SplitLineOverlay: View {
+    let size: CGSize
+    let color: Color
+    let lineWidth: CGFloat
+    var body: some View {
+        ZStack {
+            // 上
+            Rectangle()
+                .fill(color)
+                .frame(width: size.width, height: lineWidth)
+                .position(x: size.width/2, y: lineWidth/2)
+            // 下
+            Rectangle()
+                .fill(color)
+                .frame(width: size.width, height: lineWidth)
+                .position(x: size.width/2, y: size.height-lineWidth/2)
+            // 左
+            Rectangle()
+                .fill(color)
+                .frame(width: lineWidth, height: size.height)
+                .position(x: lineWidth/2, y: size.height/2)
+            // 右
+            Rectangle()
+                .fill(color)
+                .frame(width: lineWidth, height: size.height)
+                .position(x: size.width-lineWidth/2, y: size.height/2)
         }
     }
 }

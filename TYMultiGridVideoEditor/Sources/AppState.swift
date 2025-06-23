@@ -11,7 +11,41 @@ class AppState: ObservableObject {
         Draft(title: "6月8日")
     ]
     
-    private init() {} // Private initializer to ensure singleton usage
+    private let draftsFileName = "drafts.json"
+    private var draftsFileURL: URL {
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return dir.appendingPathComponent(draftsFileName)
+    }
+
+    private func saveDrafts() {
+        let arr = drafts.map { ["title": $0.title] }
+        if let data = try? JSONSerialization.data(withJSONObject: arr) {
+            try? data.write(to: draftsFileURL)
+        }
+    }
+
+    private func loadDrafts() {
+        guard let data = try? Data(contentsOf: draftsFileURL),
+              let arr = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return }
+        let loaded = arr.compactMap { dict -> Draft? in
+            if let title = dict["title"] as? String {
+                return Draft(title: title)
+            }
+            return nil
+        }
+        if !loaded.isEmpty {
+            drafts = loaded
+        }
+    }
+
+    // 监听drafts变化自动保存
+    private var cancellable: AnyCancellable?
+    private init() {
+        loadDrafts()
+        cancellable = $drafts.sink { [weak self] _ in
+            self?.saveDrafts()
+        }
+    }
     
     func deleteDraft(id: UUID) {
         drafts.removeAll { $0.id == id }

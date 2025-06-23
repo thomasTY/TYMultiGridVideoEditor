@@ -119,6 +119,10 @@ struct WelcomeView: View {
                                 onDuplicate: { appState.duplicateDraft(id: draft.id) },
                                 onDelete: { appState.deleteDraft(id: draft.id) }
                             )
+                            .onTapGesture {
+                                appState.currentEditingDraftId = draft.id
+                                appState.isEditing = true
+                            }
                         }
                     }
                     .padding(.horizontal, 16)

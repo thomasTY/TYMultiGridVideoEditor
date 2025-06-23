@@ -9,7 +9,7 @@ struct TYMultiGridVideoEditorApp: App {
         WindowGroup {
             Group {
                 if appState.isEditing {
-                    EditorView()
+                    EditorView(currentDraftId: appState.currentEditingDraftId)
                 } else {
                     WelcomeView()
                 }

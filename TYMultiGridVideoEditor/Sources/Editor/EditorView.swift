@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EditorView: View {
     @ObservedObject private var appState = AppState.shared
+    var currentDraftId: UUID?
 
     var body: some View {
         GeometryReader { geometry in

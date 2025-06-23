@@ -69,6 +69,7 @@ struct MediaItemView: View {
     let asset: MediaAsset
     let isSelected: Bool
     let isAddedToCanvas: Bool
+    var selectedAssetIDs: Set<MediaAsset.ID> = []
     var onDelete: (() -> Void)? = nil
     var onRename: (() -> Void)? = nil
     var onDuplicate: (() -> Void)? = nil
@@ -195,7 +196,10 @@ struct MediaItemView: View {
             }
         }
         .onDrag {
-            NSItemProvider(object: asset.id.uuidString as NSString)
+            // 多选拖拽：传递所有选中id，否则只传当前id
+            let ids = selectedAssetIDs.isEmpty ? [asset.id] : Array(selectedAssetIDs)
+            let idString = ids.map { $0.uuidString }.joined(separator: ",")
+            return NSItemProvider(object: idString as NSString)
         } preview: {
             thumbnailContent
         }

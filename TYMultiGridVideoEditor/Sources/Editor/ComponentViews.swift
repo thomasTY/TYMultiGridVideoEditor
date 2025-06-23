@@ -16,16 +16,15 @@ struct PlaceholderView: View {
 struct CanvasView: View {
     @ObservedObject private var appState = AppState.shared
     @State private var isTargeted = false
-    @State private var canvasAssets: [UUID] = []  // 存储画布中的素材ID
     
     var body: some View {
         VStack {
-            if canvasAssets.isEmpty {
+            if appState.canvasAssets.isEmpty {
                 PlaceholderView(title: isTargeted ? "拖拽到此处！" : "画布区", color: Theme.playerBackgroundColor)
             } else {
                 ScrollView {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 10)], spacing: 10) {
-                        ForEach(canvasAssets, id: \.self) { assetId in
+                        ForEach(appState.canvasAssets, id: \.self) { assetId in
                             ZStack(alignment: .topTrailing) {
                                 Rectangle()
                                     .fill(Theme.playerBackgroundColor)
@@ -51,9 +50,11 @@ struct CanvasView: View {
         .onDrop(of: [UTType.text], isTargeted: $isTargeted) { providers in
             if let provider = providers.first {
                 _ = provider.loadObject(ofClass: NSString.self) { object, _ in
-                    if let idStr = object as? String,
-                       let assetId = UUID(uuidString: idStr) {
-                        addAsset(assetId)
+                    if let idStr = object as? String {
+                        let ids = idStr.split(separator: ",").compactMap { UUID(uuidString: String($0)) }
+                        for assetId in ids {
+                            addAsset(assetId)
+                        }
                     }
                 }
                 return true
@@ -63,14 +64,14 @@ struct CanvasView: View {
     }
     
     private func addAsset(_ assetId: UUID) {
-        if !canvasAssets.contains(assetId) {
-            canvasAssets.append(assetId)
+        if !appState.canvasAssets.contains(assetId) {
+            appState.canvasAssets.append(assetId)
             appState.addAssetToCanvas(assetId)
         }
     }
     
     private func removeAsset(_ assetId: UUID) {
-        canvasAssets.removeAll { $0 == assetId }
+        appState.canvasAssets.removeAll { $0 == assetId }
         appState.removeAssetFromCanvas(assetId)
     }
 }

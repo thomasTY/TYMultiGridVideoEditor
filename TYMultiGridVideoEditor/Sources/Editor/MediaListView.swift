@@ -61,6 +61,7 @@ struct MediaListView: View {
                                     asset: asset,
                                     isSelected: selectedAssetIDs.contains(asset.id),
                                     isAddedToCanvas: appState.isAssetInCanvas(asset.id),
+                                    selectedAssetIDs: selectedAssetIDs,
                                     onDelete: {
                                         if selectedAssetIDs.contains(asset.id) && selectedAssetIDs.count > 1 {
                                             handleDeleteSelectedAssets()
@@ -213,8 +214,10 @@ struct MediaListView: View {
                 newAsset = MediaAsset(title: name, type: .video, duration: nil)
             }
             if let newAsset = newAsset, let idx = mediaAssets.firstIndex(where: { $0.id == asset.id }) {
+                let oldId = mediaAssets[idx].id
                 mediaAssets[idx] = newAsset
-                // TODO: 如果画布区有引用该素材，也应同步替换
+                // 同步替换画布中的引用
+                appState.replaceAssetInCanvas(oldId: oldId, newId: newAsset.id)
             }
         }
     }

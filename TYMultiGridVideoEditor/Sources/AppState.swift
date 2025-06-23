@@ -12,6 +12,7 @@ class AppState: ObservableObject {
     ]
     @Published var currentEditingDraftId: UUID? = nil
     @Published var assetsInCanvas = Set<UUID>()  // 追踪画布中的素材ID
+    @Published var canvasAssets: [UUID] = []  // 新增：全局画布素材ID数组
     
     private let draftsFileName = "drafts.json"
     private var draftsFileURL: URL {
@@ -141,5 +142,13 @@ class AppState: ObservableObject {
     
     func isAssetInCanvas(_ assetId: UUID) -> Bool {
         return assetsInCanvas.contains(assetId)
+    }
+    
+    func replaceAssetInCanvas(oldId: UUID, newId: UUID) {
+        for i in 0..<canvasAssets.count {
+            if canvasAssets[i] == oldId {
+                canvasAssets[i] = newId
+            }
+        }
     }
 } 

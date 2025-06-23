@@ -82,5 +82,8 @@ struct MediaItemView: View {
             Divider()
             Button("删除", systemImage: "trash", role: .destructive, action: { onDelete?() })
         }
+        .onDrag {
+            NSItemProvider(object: asset.id.uuidString as NSString)
+        }
     }
 } 

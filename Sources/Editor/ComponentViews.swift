@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct PlaceholderView: View {
     let title: String
@@ -13,7 +14,21 @@ struct PlaceholderView: View {
 }
 
 struct CanvasView: View {
-    var body: some View { PlaceholderView(title: "画布区", color: Theme.playerBackgroundColor) }
+    @State private var isTargeted = false
+    var body: some View {
+        PlaceholderView(title: isTargeted ? "拖拽到此处！" : "画布区", color: Theme.playerBackgroundColor)
+            .onDrop(of: [UTType.text], isTargeted: $isTargeted) { providers in
+                if let provider = providers.first {
+                    _ = provider.loadObject(ofClass: NSString.self) { object, _ in
+                        if let idStr = object as? String {
+                            print("[Canvas] 接收到拖拽素材ID: \(idStr)")
+                        }
+                    }
+                    return true
+                }
+                return false
+            }
+    }
 }
 
 struct InspectorView: View {

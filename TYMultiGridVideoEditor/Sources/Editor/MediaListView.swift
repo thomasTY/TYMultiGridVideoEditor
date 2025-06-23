@@ -42,10 +42,18 @@ struct MediaListView: View {
                             asset: asset,
                             isSelected: selectedAssetIDs.contains(asset.id),
                             isAddedToCanvas: appState.isAssetInCanvas(asset.id),
-                            onDelete: { deleteAsset(asset) },
+                            onDelete: {
+                                if selectedAssetIDs.contains(asset.id) && selectedAssetIDs.count > 1 {
+                                    handleDeleteSelectedAssets()
+                                } else {
+                                    deleteAsset(asset)
+                                    appState.removeAssetFromCanvas(asset.id)
+                                }
+                            },
                             onRename: { renameAsset(asset) },
                             onDuplicate: { duplicateAsset(asset) },
-                            onReplace: { replaceAsset(asset) }
+                            onReplace: { replaceAsset(asset) },
+                            onAddToCanvas: { handleAddToCanvas(asset) }
                         )
                         .onTapGesture { event in
                             handleSelection(for: asset, with: event)
@@ -62,6 +70,11 @@ struct MediaListView: View {
         .background(Theme.secondaryBackgroundColor)
         .cornerRadius(12)
         .clipped()
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willUpdateNotification)) { _ in
+            if let event = NSApp.currentEvent, event.type == .keyDown, event.keyCode == 51 { // 51为Delete键
+                handleDeleteSelectedAssets()
+            }
+        }
     }
     
     private func handleSelection(for asset: MediaAsset, with event: NSEvent) {
@@ -163,5 +176,28 @@ struct MediaListView: View {
                 // TODO: 如果画布区有引用该素材，也应同步替换
             }
         }
+    }
+    
+    private func handleAddToCanvas(_ asset: MediaAsset) {
+        let idsToAdd: [UUID]
+        if selectedAssetIDs.contains(asset.id) && selectedAssetIDs.count > 1 {
+            idsToAdd = Array(selectedAssetIDs)
+        } else {
+            idsToAdd = [asset.id]
+        }
+        for id in idsToAdd {
+            appState.addAssetToCanvas(id)
+        }
+    }
+    
+    private func handleDeleteSelectedAssets() {
+        let idsToDelete = Array(selectedAssetIDs)
+        for id in idsToDelete {
+            if let asset = mediaAssets.first(where: { $0.id == id }) {
+                deleteAsset(asset)
+                appState.removeAssetFromCanvas(asset.id)
+            }
+        }
+        selectedAssetIDs.removeAll()
     }
 } 

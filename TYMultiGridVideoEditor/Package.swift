@@ -18,7 +18,8 @@ let package = Package(
             name: "TYMultiGridVideoEditor",
             path: "Sources",
             resources: [
-                .process("Editor/Resources")
+                .process("TYMultiGridVideoEditor/Assets.xcassets"),
+                .process("TYMultiGridVideoEditor/Preview Content")
             ]
         )
     ]

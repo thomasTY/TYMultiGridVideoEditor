@@ -231,6 +231,7 @@ struct MediaListView: View {
             idsToAdd = [asset.id]
         }
         for id in idsToAdd {
+            appState.canvasAssets.append(id) // 允许重复添加
             appState.addAssetToCanvas(id)
         }
     }

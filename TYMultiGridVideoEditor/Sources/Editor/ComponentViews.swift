@@ -23,8 +23,10 @@ struct CanvasView: View {
     @State private var currentTime: Double = 0
     @State private var duration: Double = 5 // 默认5s，后续根据所有素材最大时长动态调整
     @State private var timer: Timer? = nil
-    // 选中单元格
-    @State private var selectedCell: Int? = nil
+    // 选中单元格（多选）
+    @State private var selectedCells: Set<Int> = []
+    // 拖拽排序状态
+    @State private var draggedAssetId: UUID? = nil
     // 参数Binding
     @Binding var rowCount: Int
     @Binding var colCount: Int
@@ -55,59 +57,41 @@ struct CanvasView: View {
                 Divider().opacity(0.7)
                 // 画布宫格区
                 GeometryReader { geo in
-                    let rows = rowCount
-                    let cols = colCount
-                    let W = geo.size.width - 2 * canvasPadding
-                    let H = geo.size.height - 60 - 2 * canvasPadding // 60为控制条预留高度
-                    let cellH = (H - CGFloat(rows-1)*rowSpacing) / CGFloat(rows)
-                    let cellW = cellH * cellAspect
-                    let totalCellW = CGFloat(cols) * cellW
-                    let actualColSpacing: CGFloat = cols > 1 ? max((W - totalCellW) / CGFloat(cols - 1), colSpacing) : 0
-                    VStack(spacing: rowSpacing) {
-                        ForEach(0..<rows, id: \.self) { row in
-                            HStack(spacing: actualColSpacing) {
-                                ForEach(0..<cols, id: \.self) { col in
-                                    let idx = row * cols + col
-                                    let isSelected = selectedCell == idx
-                                    if idx < appState.canvasAssets.count {
-                                        let assetId = appState.canvasAssets[idx]
-                                        CanvasAssetCell(
-                                            assetId: assetId,
-                                            currentTime: currentTime,
-                                            isPlaying: isPlaying,
-                                            isMuted: isMuted,
-                                            cellSize: CGSize(width: cellW, height: cellH),
-                                            isSelected: isSelected,
-                                            showSplitLine: true,
-                                            removeAction: { removeAsset(assetId) }
-                                        )
-                                        .onTapGesture {
-                                            selectedCell = (selectedCell == idx) ? nil : idx
-                                        }
-                                    } else {
-                                        CanvasAssetCell(
-                                            assetId: nil,
-                                            currentTime: currentTime,
-                                            isPlaying: isPlaying,
-                                            isMuted: isMuted,
-                                            cellSize: CGSize(width: cellW, height: cellH),
-                                            isSelected: isSelected,
-                                            showSplitLine: true,
-                                            removeAction: nil
-                                        )
-                                        .onTapGesture {
-                                            selectedCell = (selectedCell == idx) ? nil : idx
-                                        }
-                                    }
-                                }
+                    ZStack {
+                        Color.clear
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                selectedCells.removeAll()
                             }
-                        }
+                        let rows = rowCount
+                        let cols = colCount
+                        let W = geo.size.width - 2 * canvasPadding
+                        let H = geo.size.height - 60 - 2 * canvasPadding
+                        let cellH = (H - CGFloat(rows-1)*rowSpacing) / CGFloat(rows)
+                        let cellW = cellH * cellAspect
+                        let totalCellW = CGFloat(cols) * cellW
+                        let actualColSpacing: CGFloat = cols > 1 ? max((W - totalCellW) / CGFloat(cols - 1), colSpacing) : 0
+                        CanvasGridView(
+                            rows: rows,
+                            cols: cols,
+                            cellW: cellW,
+                            cellH: cellH,
+                            actualColSpacing: actualColSpacing,
+                            rowSpacing: rowSpacing,
+                            selectedCells: selectedCells,
+                            appState: appState,
+                            currentTime: currentTime,
+                            isPlaying: isPlaying,
+                            isMuted: isMuted,
+                            removeAsset: removeAsset,
+                            handleCellTap: handleCellTap,
+                            draggedAssetId: $draggedAssetId
+                        )
+                        .padding(canvasPadding)
                     }
-                    .padding(canvasPadding)
                 }
                 .aspectRatio(canvasAspectRatio, contentMode: .fit)
                 .padding(.horizontal, 12)
-                .padding(.top, 8)
                 .padding(.bottom, 0)
                 // 播放控制栏
                 VStack(spacing: 0) {
@@ -240,13 +224,22 @@ struct CanvasView: View {
         let ms = Int((t - Double(totalSeconds)) * 100)
         return String(format: "%02d:%02d.%02d", minutes, seconds, ms)
     }
+    // 多选辅助方法
+    private func handleCellTap(at index: Int) {
+        if NSEvent.modifierFlags.contains(.command) {
+            if selectedCells.contains(index) {
+                selectedCells.remove(index)
+            } else {
+                selectedCells.insert(index)
+            }
+        } else {
+            selectedCells = [index]
+        }
+    }
 }
 
 struct CanvasAssetCell: View {
     let assetId: UUID?
-    let currentTime: Double
-    let isPlaying: Bool
-    let isMuted: Bool
     let cellSize: CGSize
     let isSelected: Bool
     let showSplitLine: Bool
@@ -268,20 +261,22 @@ struct CanvasAssetCell: View {
                                     .fill(Color.gray.opacity(0.2))
                                     .overlay(Text("无效素材").foregroundColor(.gray).font(.caption))
                             } else if asset.type == .image {
-                                if currentTime <= 5, let img = asset.thumbnail {
+                                if let img = asset.thumbnail {
                                     Image(nsImage: img)
                                         .resizable()
                                         .scaledToFill()
-                                } else if currentTime <= 5 {
+                                } else {
                                     Rectangle().fill(Color.gray.opacity(0.3))
                                 }
                             } else if asset.type == .video, let url = asset.url {
-                                GlobalSyncVideoPlayer(
-                                    url: url,
-                                    currentTime: .constant(currentTime),
-                                    isPlaying: .constant(isPlaying),
-                                    isMuted: .constant(isMuted)
-                                )
+                                // 只显示首帧静态图
+                                if let img = asset.thumbnail {
+                                    Image(nsImage: img)
+                                        .resizable()
+                                        .scaledToFill()
+                                } else {
+                                    Rectangle().fill(Color.gray.opacity(0.3))
+                                }
                             }
                         }
                     }
@@ -600,6 +595,89 @@ struct CanvasColSpacingStepper: View {
                     .frame(width: 28)
             }
             .frame(width: 100)
+        }
+    }
+}
+
+// 拖拽排序 DropDelegate
+struct CanvasDropDelegate: DropDelegate {
+    let targetAssetId: UUID
+    @ObservedObject var appState: AppState
+    @Binding var draggedAssetId: UUID?
+
+    func performDrop(info: DropInfo) -> Bool {
+        guard let draggedAssetId = self.draggedAssetId,
+              draggedAssetId != targetAssetId,
+              let fromIndex = appState.canvasAssets.firstIndex(of: draggedAssetId),
+              let toIndex = appState.canvasAssets.firstIndex(of: targetAssetId)
+        else {
+            return false
+        }
+        appState.canvasAssets.swapAt(fromIndex, toIndex)
+        self.draggedAssetId = nil
+        return true
+    }
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        return DropProposal(operation: .move)
+    }
+}
+
+// 新增：宫格渲染子视图，解决类型推断超时
+struct CanvasGridView: View {
+    let rows: Int
+    let cols: Int
+    let cellW: CGFloat
+    let cellH: CGFloat
+    let actualColSpacing: CGFloat
+    let rowSpacing: CGFloat
+    let selectedCells: Set<Int>
+    let appState: AppState
+    let currentTime: Double
+    let isPlaying: Bool
+    let isMuted: Bool
+    let removeAsset: (UUID) -> Void
+    let handleCellTap: (Int) -> Void
+    @Binding var draggedAssetId: UUID?
+
+    var body: some View {
+        VStack(spacing: rowSpacing) {
+            ForEach(0..<rows, id: \.self) { row in
+                HStack(spacing: actualColSpacing) {
+                    ForEach(0..<cols, id: \.self) { col in
+                        let idx = row * cols + col
+                        let isSelected = selectedCells.contains(idx)
+                        if idx < appState.canvasAssets.count {
+                            let assetId = appState.canvasAssets[idx]
+                            CanvasAssetCell(
+                                assetId: assetId,
+                                cellSize: CGSize(width: cellW, height: cellH),
+                                isSelected: isSelected,
+                                showSplitLine: true,
+                                removeAction: { removeAsset(assetId) }
+                            )
+                            .onTapGesture { handleCellTap(idx) }
+                            .onDrag {
+                                draggedAssetId = assetId
+                                return NSItemProvider(object: assetId.uuidString as NSString)
+                            }
+                            .onDrop(of: [UTType.text], delegate: CanvasDropDelegate(
+                                targetAssetId: assetId,
+                                appState: appState,
+                                draggedAssetId: $draggedAssetId
+                            ))
+                        } else {
+                            CanvasAssetCell(
+                                assetId: nil,
+                                cellSize: CGSize(width: cellW, height: cellH),
+                                isSelected: isSelected,
+                                showSplitLine: true,
+                                removeAction: nil
+                            )
+                            .onTapGesture { handleCellTap(idx) }
+                        }
+                    }
+                }
+            }
         }
     }
 } 

@@ -14,6 +14,7 @@
 		DCFF5FF32E090D6F001BFD2F /* Exceptions for "TYMultiGridVideoEditor" folder in "TYMultiGridVideoEditor" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"开发计划.md",
 				Package.swift,
 			);
 			target = DCFFFE4B2E09058B001BFD2F /* TYMultiGridVideoEditor */;
@@ -30,16 +31,6 @@
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
-
-/* Begin PBXFrameworksBuildPhase section */
-		DCFFFE492E09058B001BFD2F /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		DCFFFE432E09058B001BFD2F = {
@@ -66,7 +57,6 @@
 			buildConfigurationList = DCFFFE5B2E09058D001BFD2F /* Build configuration list for PBXNativeTarget "TYMultiGridVideoEditor" */;
 			buildPhases = (
 				DCFFFE482E09058B001BFD2F /* Sources */,
-				DCFFFE492E09058B001BFD2F /* Frameworks */,
 				DCFFFE4A2E09058B001BFD2F /* Resources */,
 			);
 			buildRules = (

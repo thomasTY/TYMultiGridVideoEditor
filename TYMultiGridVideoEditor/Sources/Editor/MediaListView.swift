@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import AVFoundation
+import UniformTypeIdentifiers
 
 struct MediaListView: View {
     @ObservedObject private var appState = AppState.shared
@@ -140,9 +141,9 @@ struct MediaListView: View {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
-        panel.allowedFileTypes = [
-            "png", "jpg", "jpeg", "bmp", "gif", "tiff", "heic", "webp", // 图片
-            "mp4", "mov", "m4v", "avi", "mkv" // 视频
+        panel.allowedContentTypes = [
+            UTType.png, UTType.jpeg, UTType.bmp, UTType.gif, UTType.tiff, UTType.heic, UTType(filenameExtension: "webp")!, // 图片
+            UTType.mpeg4Movie, UTType.quickTimeMovie, UTType(filenameExtension: "m4v")!, UTType(filenameExtension: "avi")!, UTType(filenameExtension: "mkv")! // 视频
         ]
         panel.title = "导入素材"
         if panel.runModal() == .OK {
@@ -198,9 +199,9 @@ struct MediaListView: View {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        panel.allowedFileTypes = [
-            "png", "jpg", "jpeg", "bmp", "gif", "tiff", "heic", "webp",
-            "mp4", "mov", "m4v", "avi", "mkv"
+        panel.allowedContentTypes = [
+            UTType.png, UTType.jpeg, UTType.bmp, UTType.gif, UTType.tiff, UTType.heic, UTType(filenameExtension: "webp")!,
+            UTType.mpeg4Movie, UTType.quickTimeMovie, UTType(filenameExtension: "m4v")!, UTType(filenameExtension: "avi")!, UTType(filenameExtension: "mkv")!
         ]
         panel.title = "选择替换素材"
         if panel.runModal() == .OK, let url = panel.url {

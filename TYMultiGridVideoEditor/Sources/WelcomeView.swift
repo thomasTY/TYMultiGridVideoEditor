@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 struct DraftSheetState: Identifiable, Equatable {
     let id: UUID
@@ -57,7 +58,7 @@ struct WelcomeView: View {
             VStack(spacing: 0) {
                 // "开始创作" button
                 Button(action: {
-                    let draft = appState.createDraft()
+                    _ = appState.createDraft()
                     appState.isEditing = true
                     // TODO: 进入新建草稿的二级编辑界面（后续实现）
                 }) {
@@ -76,12 +77,12 @@ struct WelcomeView: View {
                 // "导入草稿" button
                 Button(action: {
                     let panel = NSOpenPanel()
-                    panel.allowedFileTypes = ["json"]
+                    panel.allowedContentTypes = [UTType.json]
                     panel.allowsMultipleSelection = false
                     panel.canChooseDirectories = false
                     panel.title = "导入草稿"
                     if panel.runModal() == .OK, let url = panel.url {
-                        if let draft = appState.importDraftFromJSON(url: url) {
+                        if appState.importDraftFromJSON(url: url) != nil {
                             appState.isEditing = true
                             // TODO: 进入导入草稿的二级编辑界面（后续实现）
                         }

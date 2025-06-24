@@ -268,7 +268,7 @@ struct CanvasAssetCell: View {
                                 } else {
                                     Rectangle().fill(Color.gray.opacity(0.3))
                                 }
-                            } else if asset.type == .video, let url = asset.url {
+                            } else if asset.type == .video, let _ = asset.url {
                                 // 只显示首帧静态图
                                 if let img = asset.thumbnail {
                                     Image(nsImage: img)
@@ -638,44 +638,183 @@ struct CanvasGridView: View {
     let removeAsset: (UUID) -> Void
     let handleCellTap: (Int) -> Void
     @Binding var draggedAssetId: UUID?
+    @State private var selectedRow: Int? = nil
+    @State private var selectedCol: Int? = nil
+    @State private var hoveredRowInsertIndex: Int? = nil
+    @State private var hoveredColInsertIndex: Int? = nil
 
     var body: some View {
-        VStack(spacing: rowSpacing) {
-            ForEach(0..<rows, id: \.self) { row in
-                HStack(spacing: actualColSpacing) {
-                    ForEach(0..<cols, id: \.self) { col in
-                        let idx = row * cols + col
-                        let isSelected = selectedCells.contains(idx)
-                        if idx < appState.canvasAssets.count {
-                            let assetId = appState.canvasAssets[idx]
-                            CanvasAssetCell(
-                                assetId: assetId,
-                                cellSize: CGSize(width: cellW, height: cellH),
-                                isSelected: isSelected,
-                                showSplitLine: true,
-                                removeAction: { removeAsset(assetId) }
+        HStack(spacing: 0) {
+            // 左侧：行按钮+加号
+            VStack(spacing: 0) {
+                ForEach(0..<rows) { rowIdx in
+                    Button(action: {
+                        selectedRow = (selectedRow == rowIdx ? nil : rowIdx)
+                        selectedCol = nil
+                    }) {
+                        Rectangle()
+                            .fill(selectedRow == rowIdx ? Color.blue.opacity(0.3) : Color.gray.opacity(0.15))
+                            .frame(width: 18, height: cellH)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 2)
+                                    .stroke(selectedRow == rowIdx ? Color.blue : Color.gray.opacity(0.3), lineWidth: 2)
                             )
-                            .onTapGesture { handleCellTap(idx) }
-                            .onDrag {
-                                draggedAssetId = assetId
-                                return NSItemProvider(object: assetId.uuidString as NSString)
+                    }
+                    .buttonStyle(.plain)
+                    // 在每两个按钮之间插入加号
+                    if rowIdx < rows - 1 {
+                        ZStack {
+                            Rectangle()
+                                .fill(Color.clear)
+                                .frame(width: 18, height: rowSpacing)
+                                .onHover { hovering in
+                                    hoveredRowInsertIndex = hovering ? (rowIdx + 1) : (hoveredRowInsertIndex == rowIdx + 1 ? nil : hoveredRowInsertIndex)
+                                }
+                            if hoveredRowInsertIndex == rowIdx + 1 {
+                                InsertRowButton(isHovered: true, onHover: {}, onExit: {}, onTap: {
+                                    // TODO: 插入行逻辑
+                                })
+                                .frame(width: 18, height: rowSpacing)
                             }
-                            .onDrop(of: [UTType.text], delegate: CanvasDropDelegate(
-                                targetAssetId: assetId,
-                                appState: appState,
-                                draggedAssetId: $draggedAssetId
-                            ))
-                        } else {
-                            CanvasAssetCell(
-                                assetId: nil,
-                                cellSize: CGSize(width: cellW, height: cellH),
-                                isSelected: isSelected,
-                                showSplitLine: true,
-                                removeAction: nil
-                            )
-                            .onTapGesture { handleCellTap(idx) }
                         }
                     }
+                }
+            }
+            .padding(.top, 18)
+            // 右侧：列按钮+加号+宫格内容
+            VStack(spacing: 0) {
+                // 顶部：列按钮+加号
+                HStack(spacing: 0) {
+                    ForEach(0..<cols) { colIdx in
+                        VStack(spacing: 0) {
+                            Button(action: {
+                                selectedCol = (selectedCol == colIdx ? nil : colIdx)
+                                selectedRow = nil
+                            }) {
+                                Rectangle()
+                                    .fill(selectedCol == colIdx ? Color.blue.opacity(0.3) : Color.gray.opacity(0.15))
+                                    .frame(width: cellW, height: 18)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 2)
+                                            .stroke(selectedCol == colIdx ? Color.blue : Color.gray.opacity(0.3), lineWidth: 2)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                            // 在每两个按钮之间插入加号
+                            if colIdx < cols - 1 {
+                                ZStack {
+                                    Rectangle()
+                                        .fill(Color.clear)
+                                        .frame(width: actualColSpacing, height: 18)
+                                        .onHover { hovering in
+                                            hoveredColInsertIndex = hovering ? (colIdx + 1) : (hoveredColInsertIndex == colIdx + 1 ? nil : hoveredColInsertIndex)
+                                        }
+                                    if hoveredColInsertIndex == colIdx + 1 {
+                                        InsertColButton(isHovered: true, onHover: {}, onExit: {}, onTap: {
+                                            // TODO: 插入列逻辑
+                                        })
+                                        .frame(width: actualColSpacing, height: 18)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // 宫格内容
+                ForEach(0..<rows) { row in
+                    HStack(spacing: actualColSpacing) {
+                        ForEach(0..<cols) { col in
+                            let idx = row * cols + col
+                            let isSelected = selectedCells.contains(idx)
+                            if idx < appState.canvasAssets.count {
+                                let assetId = appState.canvasAssets[idx]
+                                CanvasAssetCell(
+                                    assetId: assetId,
+                                    cellSize: CGSize(width: cellW, height: cellH),
+                                    isSelected: isSelected,
+                                    showSplitLine: true,
+                                    removeAction: { removeAsset(assetId) }
+                                )
+                                .onTapGesture { handleCellTap(idx) }
+                                .onDrag {
+                                    draggedAssetId = assetId
+                                    return NSItemProvider(object: assetId.uuidString as NSString)
+                                }
+                                .onDrop(of: [UTType.text], delegate: CanvasDropDelegate(
+                                    targetAssetId: assetId,
+                                    appState: appState,
+                                    draggedAssetId: $draggedAssetId
+                                ))
+                            } else {
+                                CanvasAssetCell(
+                                    assetId: nil,
+                                    cellSize: CGSize(width: cellW, height: cellH),
+                                    isSelected: isSelected,
+                                    showSplitLine: true,
+                                    removeAction: nil
+                                )
+                                .onTapGesture { handleCellTap(idx) }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// 插入行加号按钮视图
+struct InsertRowButton: View {
+    var isHovered: Bool
+    var onHover: () -> Void
+    var onExit: () -> Void
+    var onTap: () -> Void
+    var body: some View {
+        ZStack {
+            Rectangle().fill(Color.clear).frame(width: 18, height: 12)
+                .onHover { hovering in
+                    if hovering { onHover() } else { onExit() }
+                }
+            if isHovered {
+                VStack(spacing: 0) {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundColor(.blue)
+                        .background(Circle().fill(Color.white))
+                        .frame(width: 20, height: 20)
+                        .onTapGesture { onTap() }
+                    Rectangle()
+                        .fill(Color.blue.opacity(0.5))
+                        .frame(width: 18, height: 3)
+                        .cornerRadius(1.5)
+                }
+            }
+        }
+    }
+}
+
+// 插入列加号按钮视图
+struct InsertColButton: View {
+    var isHovered: Bool
+    var onHover: () -> Void
+    var onExit: () -> Void
+    var onTap: () -> Void
+    var body: some View {
+        ZStack {
+            Rectangle().fill(Color.clear).frame(width: 12, height: 18)
+                .onHover { hovering in
+                    if hovering { onHover() } else { onExit() }
+                }
+            if isHovered {
+                HStack(spacing: 0) {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundColor(.blue)
+                        .background(Circle().fill(Color.white))
+                        .frame(width: 20, height: 20)
+                        .onTapGesture { onTap() }
+                    Rectangle()
+                        .fill(Color.blue.opacity(0.5))
+                        .frame(width: 3, height: 18)
+                        .cornerRadius(1.5)
                 }
             }
         }
